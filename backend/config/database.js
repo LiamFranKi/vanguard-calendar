@@ -15,6 +15,7 @@ const pool = new Pool({
   max: 20, // Máximo de conexiones en el pool
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  timezone: 'America/Lima' // Zona horaria de Perú (GMT-5)
 });
 
 // Evento de conexión exitosa

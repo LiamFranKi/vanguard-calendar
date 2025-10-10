@@ -351,17 +351,28 @@ export const updateTask = async (req, res) => {
 
     // Actualizar asignaciones si se enviaron
     if (assignees !== undefined && Array.isArray(assignees)) {
-      // Eliminar asignaciones actuales
-      await query('DELETE FROM tarea_asignaciones WHERE tarea_id = $1', [id]);
+      console.log('📝 Actualizando asignaciones para tarea:', id);
+      console.log('👥 Nuevos asignados:', assignees);
+      
+      try {
+        // Eliminar asignaciones actuales
+        await query('DELETE FROM tarea_asignaciones WHERE tarea_id = $1', [id]);
+        console.log('🗑️ Asignaciones anteriores eliminadas');
 
-      // Agregar nuevas asignaciones
-      if (assignees.length > 0) {
-        for (const assigneeId of assignees) {
-          await query(`
-            INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol, assigned_by)
-            VALUES ($1, $2, $3, $4)
-          `, [id, assigneeId, 'asignado', userId]);
+        // Agregar nuevas asignaciones
+        if (assignees.length > 0) {
+          for (const assigneeId of assignees) {
+            console.log(`➕ Asignando usuario ${assigneeId} a tarea ${id}`);
+            await query(`
+              INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol, assigned_by)
+              VALUES ($1, $2, $3, $4)
+            `, [id, assigneeId, 'asignado', userId]);
+          }
+          console.log('✅ Todas las asignaciones guardadas');
         }
+      } catch (assignError) {
+        console.error('❌ Error al asignar usuarios:', assignError);
+        throw assignError; // Re-lanzar para que se capture en el catch principal
       }
     }
 
