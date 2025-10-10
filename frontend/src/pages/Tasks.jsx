@@ -768,35 +768,72 @@ function Tasks() {
                       </div>
                     </div>
 
-                    {/* Barra de progreso */}
+                    {/* Barra de progreso mejorada */}
                     {task.progreso > 0 && (
                       <div style={{ marginBottom: '1rem' }}>
                         <div style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          marginBottom: '0.5rem'
+                          marginBottom: '0.75rem'
                         }}>
                           <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '600' }}>
-                            Progreso
+                            📈 Progreso de la Tarea
                           </span>
-                          <span style={{ fontSize: '0.875rem', color: '#3b82f6', fontWeight: '700' }}>
+                          <span style={{
+                            fontSize: '0.875rem',
+                            fontWeight: '700',
+                            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '12px',
+                            border: '2px solid #e5e7eb'
+                          }}>
                             {task.progreso}%
                           </span>
                         </div>
                         <div style={{
+                          position: 'relative',
                           width: '100%',
-                          height: '8px',
-                          background: '#e5e7eb',
-                          borderRadius: '10px',
-                          overflow: 'hidden'
+                          height: '12px',
+                          background: 'linear-gradient(90deg, #f3f4f6, #e5e7eb)',
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)'
                         }}>
                           <div style={{
                             width: `${task.progreso}%`,
                             height: '100%',
-                            background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
-                            transition: 'width 0.3s ease'
-                          }} />
+                            background: 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)',
+                            borderRadius: '12px',
+                            transition: 'width 0.5s ease',
+                            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}>
+                            {/* Efecto de brillo animado */}
+                            <div style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: '-100%',
+                              width: '100%',
+                              height: '100%',
+                              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                              animation: 'shimmer 2s infinite'
+                            }} />
+                          </div>
+                          {/* Marcadores de porcentaje */}
+                          {[25, 50, 75].map(mark => (
+                            <div key={mark} style={{
+                              position: 'absolute',
+                              left: `${mark}%`,
+                              top: 0,
+                              bottom: 0,
+                              width: '1px',
+                              background: 'rgba(255,255,255,0.3)'
+                            }} />
+                          ))}
                         </div>
                       </div>
                     )}

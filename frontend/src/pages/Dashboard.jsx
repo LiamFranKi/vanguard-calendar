@@ -15,6 +15,7 @@ function Dashboard() {
     eventosProximos: 0,
     notificaciones: 0
   });
+  const [recentTasks, setRecentTasks] = useState([]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -38,11 +39,16 @@ function Dashboard() {
         const pendientes = tasks.filter(t => t.status === 'pendiente' || t.status === 'en_progreso').length;
         const completadas = tasks.filter(t => t.status === 'completada').length;
         
+        // Últimas 5 tareas más recientes
+        const recent = tasks.slice(0, 5);
+        
         setStats(prev => ({
           ...prev,
           tareasPendientes: pendientes,
           tareasCompletadas: completadas
         }));
+        
+        setRecentTasks(recent);
       }
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
@@ -449,34 +455,122 @@ function Dashboard() {
                   Ver todas →
                 </Link>
               </div>
-              <div style={{
-                padding: '3rem',
-                textAlign: 'center',
-                color: '#9ca3af',
-                background: 'rgba(249, 250, 251, 0.5)',
-                borderRadius: '12px',
-                border: '2px dashed #e5e7eb'
-              }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
-                <p style={{ margin: 0, fontSize: '1.1rem' }}>No hay tareas registradas</p>
-                <Link to="/tareas" style={{
-                  display: 'inline-block',
-                  marginTop: '1rem',
-                  padding: '0.75rem 1.5rem',
-                  background: '#3b82f6',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
-                  transition: 'transform 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-                >
-                  Crear tarea
-                </Link>
-              </div>
+              {recentTasks.length === 0 ? (
+                <div style={{
+                  padding: '3rem',
+                  textAlign: 'center',
+                  color: '#9ca3af',
+                  background: 'rgba(249, 250, 251, 0.5)',
+                  borderRadius: '12px',
+                  border: '2px dashed #e5e7eb'
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+                  <p style={{ margin: 0, fontSize: '1.1rem' }}>No hay tareas registradas</p>
+                  <Link to="/tareas" style={{
+                    display: 'inline-block',
+                    marginTop: '1rem',
+                    padding: '0.75rem 1.5rem',
+                    background: '#3b82f6',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                  >
+                    Crear tarea
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {recentTasks.map(task => (
+                    <Link 
+                      key={task.id}
+                      to="/tareas"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '1rem',
+                        background: 'rgba(249, 250, 251, 0.8)',
+                        borderRadius: '10px',
+                        textDecoration: 'none',
+                        border: '1px solid #e5e7eb',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                        e.currentTarget.style.transform = 'translateX(5px)';
+                        e.currentTarget.style.borderColor = '#3b82f6';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(249, 250, 251, 0.8)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          fontWeight: '600', 
+                          color: '#1f2937',
+                          marginBottom: '0.25rem',
+                          fontSize: '0.95rem'
+                        }}>
+                          {task.title}
+                        </div>
+                        <div style={{ 
+                          fontSize: '0.8rem', 
+                          color: '#6b7280',
+                          display: 'flex',
+                          gap: '0.75rem',
+                          alignItems: 'center',
+                          flexWrap: 'wrap'
+                        }}>
+                          {task.project_name && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <span style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: task.project_color || '#6b7280',
+                                display: 'inline-block'
+                              }} />
+                              {task.project_name}
+                            </span>
+                          )}
+                          {task.due_date && (
+                            <span>📅 {new Date(task.due_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                          )}
+                          {task.assignee_count > 0 && (
+                            <span>👥 {task.assignee_count}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          background: task.status === 'completada' ? '#22c55e' : 
+                                     task.status === 'en_progreso' ? '#3b82f6' : 
+                                     task.status === 'cancelada' ? '#ef4444' : '#6b7280',
+                          color: 'white'
+                        }}>
+                          {task.status === 'completada' ? '✅' : 
+                           task.status === 'en_progreso' ? '🔄' : 
+                           task.status === 'cancelada' ? '❌' : '⏳'}
+                        </span>
+                        {task.priority === 'urgente' && <span style={{ fontSize: '1.2rem' }}>🔥</span>}
+                        {task.priority === 'alta' && <span style={{ fontSize: '1.2rem' }}>🔴</span>}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
