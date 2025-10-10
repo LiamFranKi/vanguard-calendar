@@ -974,23 +974,14 @@ function Tasks() {
             )}
           </div>
         ) : (
-          // Vista Kanban (próximamente)
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
-            padding: '2rem'
-          }}>
-            <div style={{
-              textAlign: 'center',
-              padding: '3rem',
-              color: 'rgba(255, 255, 255, 0.9)'
-            }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚧</div>
-              <h3 style={{ margin: '0 0 0.5rem 0', color: 'white' }}>Vista Kanban en desarrollo</h3>
-              <p style={{ margin: 0 }}>Próximamente con drag & drop</p>
-            </div>
-          </div>
+          // Vista Kanban
+          <KanbanView
+            tasks={tasks}
+            onTaskClick={openDetailModal}
+            onStatusChange={handleQuickStatusChange}
+            getPriorityColor={getPriorityColor}
+            getStatusColor={getStatusColor}
+          />
         )}
       </div>
 
@@ -2044,6 +2035,334 @@ function TaskDetailModal({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Componente Vista Kanban
+function KanbanView({ tasks, onTaskClick, onStatusChange, getPriorityColor, getStatusColor }) {
+  const [draggedTask, setDraggedTask] = useState(null);
+
+  const columns = [
+    { id: 'pendiente', title: '⏳ Pendiente', color: '#6b7280' },
+    { id: 'en_progreso', title: '🔄 En Progreso', color: '#3b82f6' },
+    { id: 'en_revision', title: '👀 En Revisión', color: '#8b5cf6' },
+    { id: 'completada', title: '✅ Completada', color: '#22c55e' },
+    { id: 'cancelada', title: '❌ Cancelada', color: '#ef4444' }
+  ];
+
+  const getTasksByStatus = (status) => {
+    return tasks.filter(task => task.status === status);
+  };
+
+  const handleDragStart = (e, task) => {
+    setDraggedTask(task);
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.style.opacity = '1';
+    setDraggedTask(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, newStatus) => {
+    e.preventDefault();
+    
+    if (draggedTask && draggedTask.status !== newStatus) {
+      onStatusChange(draggedTask.id, newStatus);
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(5, 1fr)',
+      gap: '1rem',
+      minHeight: '600px'
+    }}>
+      {columns.map(column => {
+        const columnTasks = getTasksByStatus(column.id);
+        
+        return (
+          <div
+            key={column.id}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, column.id)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '12px',
+              padding: '1rem',
+              minHeight: '500px',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* Header de la columna */}
+            <div style={{
+              background: column.color,
+              color: 'white',
+              padding: '0.75rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              fontWeight: '700',
+              fontSize: '0.95rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <span>{column.title}</span>
+              <span style={{
+                background: 'rgba(255, 255, 255, 0.3)',
+                padding: '0.25rem 0.5rem',
+                borderRadius: '12px',
+                fontSize: '0.85rem'
+              }}>
+                {columnTasks.length}
+              </span>
+            </div>
+
+            {/* Tareas de la columna */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+              paddingRight: '0.25rem'
+            }}>
+              {columnTasks.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '2rem 0.5rem',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontSize: '0.9rem'
+                }}>
+                  Sin tareas
+                </div>
+              ) : (
+                columnTasks.map(task => (
+                  <div
+                    key={task.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, task)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => onTaskClick(task)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '10px',
+                      padding: '1rem',
+                      cursor: 'grab',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      borderLeft: `4px solid ${getPriorityColor(task.priority)}`,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                    }}
+                  >
+                    {/* Título */}
+                    <h4 style={{
+                      margin: '0 0 0.5rem 0',
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      color: '#1f2937',
+                      lineHeight: '1.3'
+                    }}>
+                      {task.title}
+                    </h4>
+
+                    {/* Descripción (truncada) */}
+                    {task.description && (
+                      <p style={{
+                        margin: '0 0 0.75rem 0',
+                        fontSize: '0.85rem',
+                        color: '#6b7280',
+                        lineHeight: '1.4',
+                        maxHeight: '2.8em',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {task.description}
+                      </p>
+                    )}
+
+                    {/* Tags */}
+                    {task.tags && task.tags.length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.25rem',
+                        marginBottom: '0.75rem'
+                      }}>
+                        {task.tags.slice(0, 2).map((tag, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              background: '#e5e7eb',
+                              color: '#6b7280',
+                              padding: '0.125rem 0.5rem',
+                              borderRadius: '10px',
+                              fontSize: '0.75rem',
+                              fontWeight: '500'
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {task.tags.length > 2 && (
+                          <span style={{
+                            fontSize: '0.75rem',
+                            color: '#6b7280'
+                          }}>
+                            +{task.tags.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Progreso */}
+                    {task.progreso > 0 && (
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{
+                          width: '100%',
+                          height: '4px',
+                          background: '#e5e7eb',
+                          borderRadius: '10px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${task.progreso}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                        <div style={{
+                          fontSize: '0.7rem',
+                          color: '#6b7280',
+                          marginTop: '0.25rem',
+                          textAlign: 'right'
+                        }}>
+                          {task.progreso}%
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.75rem',
+                      color: '#6b7280',
+                      borderTop: '1px solid #e5e7eb',
+                      paddingTop: '0.75rem'
+                    }}>
+                      {/* Usuarios asignados */}
+                      {task.assignees && task.assignees.length > 0 ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span>👥</span>
+                          <div style={{ display: 'flex', marginLeft: '0.25rem' }}>
+                            {task.assignees.slice(0, 3).map((assignee, idx) => (
+                              assignee.avatar ? (
+                                <img
+                                  key={assignee.id}
+                                  src={`http://localhost:5000${assignee.avatar}`}
+                                  alt={assignee.nombres}
+                                  style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '2px solid white',
+                                    marginLeft: idx > 0 ? '-8px' : '0'
+                                  }}
+                                  title={`${assignee.nombres} ${assignee.apellidos}`}
+                                />
+                              ) : (
+                                <div
+                                  key={assignee.id}
+                                  style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '50%',
+                                    background: '#e5e7eb',
+                                    border: '2px solid white',
+                                    marginLeft: idx > 0 ? '-8px' : '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.6rem'
+                                  }}
+                                  title={`${assignee.nombres} ${assignee.apellidos}`}
+                                >
+                                  👤
+                                </div>
+                              )
+                            ))}
+                            {task.assignees.length > 3 && (
+                              <div style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '50%',
+                                background: '#6b7280',
+                                color: 'white',
+                                fontSize: '0.65rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '2px solid white',
+                                marginLeft: '-8px',
+                                fontWeight: '600'
+                              }}>
+                                +{task.assignees.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span>Sin asignar</span>
+                      )}
+
+                      {/* Fecha */}
+                      {task.due_date && (
+                        <span>📅 {new Date(task.due_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                      )}
+                    </div>
+
+                    {/* Badge de prioridad */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '0.5rem',
+                      right: '0.5rem',
+                      fontSize: '1rem'
+                    }}>
+                      {task.priority === 'urgente' && '🔥'}
+                      {task.priority === 'alta' && '🔴'}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
