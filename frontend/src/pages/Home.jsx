@@ -56,7 +56,7 @@ function Home() {
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="btn btn-secondary">Dashboard</Link>
+                <Link to="/dashboard" className="btn btn-primary">Dashboard</Link>
               </>
             ) : (
               <>

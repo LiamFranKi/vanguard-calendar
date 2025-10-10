@@ -6,7 +6,9 @@ import {
   updateTask,
   deleteTask,
   getAllProjects,
-  createProject
+  createProject,
+  addComment,
+  getComments
 } from '../controllers/tasks.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
@@ -36,5 +38,13 @@ router.get('/projects/all', verifyToken, getAllProjects);
 
 // Crear nuevo proyecto
 router.post('/projects', verifyToken, createProject);
+
+// ===== RUTAS DE COMENTARIOS =====
+
+// Obtener comentarios de una tarea
+router.get('/:taskId/comments', verifyToken, getComments);
+
+// Agregar comentario a una tarea
+router.post('/:taskId/comments', verifyToken, addComment);
 
 export default router;

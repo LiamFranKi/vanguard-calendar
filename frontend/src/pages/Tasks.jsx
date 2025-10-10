@@ -1484,6 +1484,55 @@ function TaskDetailModal({
   getPriorityIcon,
   getStatusIcon
 }) {
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  useEffect(() => {
+    if (task && task.id) {
+      fetchComments();
+    }
+  }, [task]);
+
+  const fetchComments = async () => {
+    try {
+      setLoadingComments(true);
+      const response = await axios.get(`/api/tasks/${task.id}/comments`);
+      if (response.data.success) {
+        setComments(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error al cargar comentarios:', error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    try {
+      const response = await axios.post(`/api/tasks/${task.id}/comments`, {
+        content: newComment
+      });
+
+      if (response.data.success) {
+        setComments([response.data.data, ...comments]);
+        setNewComment('');
+        Swal.fire({
+          icon: 'success',
+          title: 'Comentario agregado',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    } catch (error) {
+      console.error('Error al agregar comentario:', error);
+      Swal.fire('Error', 'Error al agregar comentario', 'error');
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -1782,23 +1831,158 @@ function TaskDetailModal({
           )}
         </div>
 
-        {/* Sección de comentarios (preparada) */}
-        {task.comments && task.comments.length > 0 && (
-          <div style={{ marginTop: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 0.75rem 0', color: '#374151', fontSize: '1.1rem' }}>
-              💬 Comentarios ({task.comments.length})
-            </h3>
+        {/* Sección de comentarios funcional */}
+        <div style={{ marginTop: '1.5rem', borderTop: '2px solid #e5e7eb', paddingTop: '1.5rem' }}>
+          <h3 style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '1.1rem' }}>
+            💬 Comentarios y Detalles ({comments.length})
+          </h3>
+
+          {/* Formulario para agregar comentario */}
+          <form onSubmit={handleAddComment} style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Escribe un comentario o detalle sobre esta tarea..."
+                rows="3"
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  resize: 'vertical'
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!newComment.trim()}
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: newComment.trim() ? '#3b82f6' : '#d1d5db',
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: newComment.trim() ? 'pointer' : 'not-allowed',
+                  alignSelf: 'flex-start',
+                  transition: 'all 0.2s'
+                }}
+              >
+                📝 Agregar
+              </button>
+            </div>
+          </form>
+
+          {/* Lista de comentarios */}
+          {loadingComments ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              Cargando comentarios...
+            </div>
+          ) : comments.length === 0 ? (
             <div style={{
               background: '#f9fafb',
-              padding: '1rem',
+              padding: '2rem',
               borderRadius: '8px',
               color: '#6b7280',
               textAlign: 'center'
             }}>
-              Sistema de comentarios próximamente...
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💭</div>
+              <p style={{ margin: 0 }}>No hay comentarios aún. ¡Sé el primero en comentar!</p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              maxHeight: '400px',
+              overflow: 'auto',
+              padding: '0.5rem'
+            }}>
+              {comments.map(comment => (
+                <div
+                  key={comment.id}
+                  style={{
+                    background: '#f9fafb',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb'
+                  }}
+                >
+                  {/* Header del comentario */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '0.75rem'
+                  }}>
+                    {comment.avatar ? (
+                      <img 
+                        src={`http://localhost:5000${comment.avatar}`}
+                        alt={comment.nombres}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        background: '#e5e7eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.25rem'
+                      }}>
+                        👤
+                      </div>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.95rem' }}>
+                        {comment.nombres} {comment.apellidos}
+                        <span style={{
+                          marginLeft: '0.5rem',
+                          fontSize: '0.8rem',
+                          color: '#6b7280',
+                          fontWeight: '500',
+                          background: '#e5e7eb',
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: '10px'
+                        }}>
+                          {comment.rol}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                        {new Date(comment.created_at).toLocaleString('es-ES', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contenido del comentario */}
+                  <div style={{
+                    color: '#374151',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap',
+                    paddingLeft: '3rem'
+                  }}>
+                    {comment.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

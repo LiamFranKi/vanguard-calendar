@@ -201,7 +201,9 @@ export const createTask = async (req, res) => {
       categoria = 'general',
       project_id,
       estimacion_horas,
-      tags = []
+      progreso = 0,
+      tags = [],
+      assignees = []
     } = req.body;
 
     const userId = req.userId;
@@ -217,10 +219,10 @@ export const createTask = async (req, res) => {
     const createTaskQuery = `
       INSERT INTO tareas (
         titulo, descripcion, fecha_vencimiento, prioridad, estado, 
-        categoria, project_id, estimacion_horas, tags, creado_por
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        categoria, project_id, estimacion_horas, progreso, tags, creado_por
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING id, titulo as title, descripcion as description, 
-                prioridad as priority, estado as status, created_at
+                prioridad as priority, estado as status, progreso, created_at
     `;
 
     // Convertir tags a array de PostgreSQL
@@ -235,11 +237,22 @@ export const createTask = async (req, res) => {
       categoria,
       project_id || null,
       estimacion_horas || null,
+      progreso,
       tagsArray,
       userId
     ]);
 
     const task = taskResult.rows[0];
+
+    // Asignar usuarios a la tarea
+    if (assignees && assignees.length > 0) {
+      for (const assigneeId of assignees) {
+        await query(`
+          INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol, assigned_by)
+          VALUES ($1, $2, $3, $4)
+        `, [task.id, assigneeId, 'asignado', userId]);
+      }
+    }
 
     // Registrar en historial
     await query(`
@@ -249,7 +262,8 @@ export const createTask = async (req, res) => {
       title, 
       priority, 
       status,
-      categoria
+      categoria,
+      assignees_count: assignees.length
     }]);
 
     res.status(201).json({
@@ -273,6 +287,7 @@ export const updateTask = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     const userId = req.userId;
+    const assignees = updates.assignees;
 
     // Mapeo de campos frontend -> backend
     const fieldMap = {
@@ -300,40 +315,65 @@ export const updateTask = async (req, res) => {
       }
     }
 
-    if (updateFields.length === 0) {
+    if (updateFields.length === 0 && !assignees) {
       return res.status(400).json({
         success: false,
         message: 'No hay campos válidos para actualizar'
       });
     }
 
-    paramCount++;
-    updateFields.push(`updated_at = $${paramCount}`);
-    updateValues.push(new Date());
+    // Actualizar la tarea si hay campos
+    if (updateFields.length > 0) {
+      paramCount++;
+      updateFields.push(`updated_at = $${paramCount}`);
+      updateValues.push(new Date());
 
-    paramCount++;
-    updateValues.push(id);
+      paramCount++;
+      updateValues.push(id);
 
-    const updateQuery = `
-      UPDATE tareas 
-      SET ${updateFields.join(', ')}
-      WHERE id = $${paramCount}
-      RETURNING id, titulo as title, descripcion as description, 
-                prioridad as priority, estado as status
-    `;
+      const updateQuery = `
+        UPDATE tareas 
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramCount}
+        RETURNING id, titulo as title, descripcion as description, 
+                  prioridad as priority, estado as status, progreso
+      `;
 
-    const result = await query(updateQuery, updateValues);
+      const result = await query(updateQuery, updateValues);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tarea no encontrada'
-      });
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Tarea no encontrada'
+        });
+      }
     }
+
+    // Actualizar asignaciones si se enviaron
+    if (assignees !== undefined && Array.isArray(assignees)) {
+      // Eliminar asignaciones actuales
+      await query('DELETE FROM tarea_asignaciones WHERE tarea_id = $1', [id]);
+
+      // Agregar nuevas asignaciones
+      if (assignees.length > 0) {
+        for (const assigneeId of assignees) {
+          await query(`
+            INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol, assigned_by)
+            VALUES ($1, $2, $3, $4)
+          `, [id, assigneeId, 'asignado', userId]);
+        }
+      }
+    }
+
+    // Registrar en historial
+    await query(`
+      INSERT INTO task_history (task_id, user_id, action, changes)
+      VALUES ($1, $2, $3, $4)
+    `, [id, userId, 'updated', updates]);
 
     res.json({
       success: true,
-      data: result.rows[0],
+      data: { id },
       message: 'Tarea actualizada exitosamente'
     });
 
@@ -341,7 +381,8 @@ export const updateTask = async (req, res) => {
     console.error('Error al actualizar tarea:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al actualizar tarea'
+      message: 'Error al actualizar tarea',
+      error: error.message
     });
   }
 };
@@ -423,6 +464,97 @@ export const createProject = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al crear proyecto'
+    });
+  }
+};
+
+// ===== COMENTARIOS =====
+
+export const addComment = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { content } = req.body;
+    const userId = req.userId;
+
+    if (!content || content.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'El comentario no puede estar vacío'
+      });
+    }
+
+    // Crear comentario
+    const commentResult = await query(`
+      INSERT INTO task_comments (task_id, user_id, content, type)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [taskId, userId, content.trim(), 'comment']);
+
+    const comment = commentResult.rows[0];
+
+    // Obtener información del usuario
+    const userResult = await query(`
+      SELECT id, nombres, apellidos, avatar 
+      FROM usuarios 
+      WHERE id = $1
+    `, [userId]);
+
+    const commentWithUser = {
+      ...comment,
+      user: userResult.rows[0]
+    };
+
+    // Registrar en historial
+    await query(`
+      INSERT INTO task_history (task_id, user_id, action, changes)
+      VALUES ($1, $2, $3, $4)
+    `, [taskId, userId, 'commented', { 
+      content: content.substring(0, 100) 
+    }]);
+
+    res.status(201).json({
+      success: true,
+      data: commentWithUser,
+      message: 'Comentario agregado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error al agregar comentario:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al agregar comentario',
+      error: error.message
+    });
+  }
+};
+
+export const getComments = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    const commentsResult = await query(`
+      SELECT 
+        tc.*,
+        u.nombres, 
+        u.apellidos, 
+        u.avatar,
+        u.rol
+      FROM task_comments tc
+      JOIN usuarios u ON tc.user_id = u.id
+      WHERE tc.task_id = $1
+      ORDER BY tc.created_at DESC
+    `, [taskId]);
+
+    res.json({
+      success: true,
+      data: commentsResult.rows
+    });
+
+  } catch (error) {
+    console.error('Error al obtener comentarios:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener comentarios'
     });
   }
 };
