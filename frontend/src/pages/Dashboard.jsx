@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
@@ -7,12 +7,18 @@ function Dashboard() {
   const { user, isAuthenticated, logout, loading } = useAuth();
   const { config } = useConfig();
   const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate('/login');
     }
   }, [isAuthenticated, loading, navigate]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Mostrar loading mientras se verifica la autenticación
   if (loading) {
@@ -29,158 +35,490 @@ function Dashboard() {
     navigate('/');
   };
 
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return '¡Buenos días';
+    if (hour < 19) return '¡Buenas tardes';
+    return '¡Buenas noches';
+  };
+
+  const formatDate = (date) => {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('es-ES', options);
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
   return (
-    <div>
-      <nav className="navbar">
-        <div className="container">
-          <Link to="/dashboard" className="navbar-brand">
+    <div style={{
+      minHeight: '100vh',
+      background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}CC 0%, ${config.color_secundario || '#764ba2'}CC 100%)`,
+      position: 'relative'
+    }}>
+      {/* Navbar moderna */}
+      <nav style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        padding: '1rem 0',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
+      }}>
+        <div className="container" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Link to="/dashboard" style={{
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#1f2937'
+          }}>
             {config.logo ? (
               <img 
                 src={`http://localhost:5000${config.logo}`} 
                 alt="Logo" 
                 style={{ 
-                  width: '30px', 
-                  height: '30px', 
-                  objectFit: 'contain',
-                  marginRight: '0.5rem'
+                  width: '40px', 
+                  height: '40px', 
+                  objectFit: 'contain'
                 }} 
               />
             ) : (
-              <span style={{ marginRight: '0.5rem' }}>📅</span>
+              <span style={{ fontSize: '2rem' }}>📅</span>
             )}
-            {config.nombre_proyecto}
+            <span>{config.nombre_proyecto}</span>
           </Link>
-          <ul className="navbar-nav">
-            <li><Link to="/dashboard">Dashboard</Link></li>
+          
+          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <Link to="/dashboard" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '500' }}>Dashboard</Link>
+            <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
+            <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
+            <Link to="/tareas" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Tareas</Link>
             {user?.rol === 'administrador' && (
               <>
-                <li><Link to="/users">Usuarios</Link></li>
-                <li><Link to="/settings">Configuración</Link></li>
+                <Link to="/users" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Usuarios</Link>
+                <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
               </>
             )}
-            <li><Link to="/profile">Mi Perfil</Link></li>
-            <li><Link to="/calendario">Calendario</Link></li>
-            <li><Link to="/eventos">Eventos</Link></li>
-            <li><Link to="/tareas">Tareas</Link></li>
-            <li><Link to="/reportes">Reportes</Link></li>
-            <li><button onClick={handleLogout} className="btn btn-secondary">Salir</button></li>
-          </ul>
+            <Link to="/profile" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Mi Perfil</Link>
+            
+              <button 
+                onClick={handleLogout} 
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#3b82f6',
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+                }}
+              >
+                Salir
+              </button>
+          </div>
         </div>
       </nav>
 
-      <main className="main-content">
+      {/* Contenido principal */}
+      <main style={{ padding: '3rem 0' }}>
         <div className="container">
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '1.5rem', 
+          {/* Header con saludo y fecha */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            padding: '2.5rem',
             marginBottom: '2rem',
-            padding: '1.5rem',
-            backgroundColor: 'white',
-            borderRadius: '0.5rem',
-            boxShadow: 'var(--shadow)'
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '2rem'
           }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '3px solid var(--primary-color)',
-              backgroundColor: 'var(--light-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              {user?.avatar ? (
-                <img 
-                  src={`http://localhost:5000${user.avatar}`} 
-                  alt={user.nombres}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span style={{ fontSize: '3rem' }}>👤</span>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <div style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: `4px solid ${config.color_primario || '#667eea'}`,
+                boxShadow: `0 10px 30px ${config.color_primario || '#667eea'}40`,
+                backgroundColor: '#f3f4f6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {user?.avatar ? (
+                  <img 
+                    src={`http://localhost:5000${user.avatar}`} 
+                    alt={user.nombres}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '4rem' }}>👤</span>
+                )}
+              </div>
+              
+              <div>
+                <h1 style={{ 
+                  margin: 0, 
+                  fontSize: '2.5rem', 
+                  background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}, ${config.color_secundario || '#764ba2'})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontWeight: '800',
+                  letterSpacing: '-0.02em'
+                }}>
+                  {getGreeting()}, {user?.nombres}!
+                </h1>
+                <p style={{ 
+                  margin: '0.5rem 0', 
+                  fontSize: '1.1rem',
+                  color: '#6b7280'
+                }}>
+                  {formatDate(currentTime)}
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginTop: '0.75rem' }}>
+                  <span style={{ 
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    background: user?.rol === 'administrador' 
+                      ? 'linear-gradient(135deg, #f87171, #dc2626)' 
+                      : user?.rol === 'docente' 
+                      ? 'linear-gradient(135deg, #60a5fa, #2563eb)' 
+                      : 'linear-gradient(135deg, #34d399, #059669)',
+                    color: 'white',
+                    textTransform: 'capitalize',
+                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+                  }}>
+                    {user?.rol || 'Usuario'}
+                  </span>
+                </div>
+              </div>
             </div>
             
-            <div>
-              <h1 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--dark-color)' }}>
-                Bienvenido, {user?.nombres || 'Usuario'} {user?.apellidos || ''}
-              </h1>
-              <p style={{ 
-                margin: '0.5rem 0 0 0', 
-                fontSize: '1rem',
-                color: 'var(--text-color)'
+            <div style={{ 
+              textAlign: 'right',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: '0.5rem'
+            }}>
+              <div style={{ 
+                fontSize: '3rem', 
+                fontWeight: '700',
+                background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}, ${config.color_secundario || '#764ba2'})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '-0.02em'
               }}>
-                <span style={{ 
-                  display: 'inline-block',
-                  padding: '0.375rem 0.75rem',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  backgroundColor: user?.rol === 'administrador' ? '#fecaca' : user?.rol === 'docente' ? '#bfdbfe' : '#d1fae5',
-                  color: user?.rol === 'administrador' ? '#991b1b' : user?.rol === 'docente' ? '#1e40af' : '#065f46',
-                  textTransform: 'capitalize'
+                {formatTime(currentTime)}
+              </div>
+              <div style={{ 
+                fontSize: '1rem',
+                color: '#6b7280',
+                fontWeight: '500'
+              }}>
+                Hora actual
+              </div>
+            </div>
+          </div>
+
+          {/* Cards de estadísticas */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2rem'
+          }}>
+            {[
+              { icon: '📅', label: 'Eventos Próximos', value: '0', gradient: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#667eea' },
+              { icon: '✅', label: 'Tareas Completadas', value: '0', gradient: 'linear-gradient(135deg, #34d399, #059669)', color: '#10b981' },
+              { icon: '⏰', label: 'Tareas Pendientes', value: '0', gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#f59e0b' },
+              { icon: '🔔', label: 'Notificaciones', value: '0', gradient: 'linear-gradient(135deg, #60a5fa, #2563eb)', color: '#3b82f6' }
+            ].map((stat, index) => (
+              <div key={index} style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                padding: '2rem',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.1)';
+              }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  top: '-50%',
+                  right: '-20%',
+                  width: '200px',
+                  height: '200px',
+                  background: stat.gradient,
+                  borderRadius: '50%',
+                  opacity: '0.1',
+                  filter: 'blur(40px)'
+                }} />
+                
+                <div style={{ 
+                  fontSize: '3rem', 
+                  marginBottom: '1rem',
+                  position: 'relative',
+                  zIndex: 1
                 }}>
-                  {user?.rol || 'Usuario'}
-                </span>
-              </p>
+                  {stat.icon}
+                </div>
+                <h3 style={{ 
+                  fontSize: '3rem', 
+                  fontWeight: '800',
+                  margin: '0.5rem 0',
+                  background: stat.gradient,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                  {stat.value}
+                </h3>
+                <p style={{ 
+                  color: '#6b7280', 
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  margin: 0,
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Sección de contenido */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+            gap: '2rem',
+            marginBottom: '2rem'
+          }}>
+            {/* Próximos eventos */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '2rem',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ 
+                  margin: 0, 
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: '#1f2937'
+                }}>
+                  📅 Próximos Eventos
+                </h2>
+                <Link to="/eventos" style={{ 
+                  color: config.color_primario || '#667eea',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.9rem'
+                }}>
+                  Ver todos →
+                </Link>
+              </div>
+              <div style={{
+                padding: '3rem',
+                textAlign: 'center',
+                color: '#9ca3af',
+                background: 'rgba(249, 250, 251, 0.5)',
+                borderRadius: '12px',
+                border: '2px dashed #e5e7eb'
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                <p style={{ margin: 0, fontSize: '1.1rem' }}>No hay eventos programados</p>
+                <Link to="/eventos" style={{
+                  display: 'inline-block',
+                  marginTop: '1rem',
+                  padding: '0.75rem 1.5rem',
+                  background: '#3b82f6',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                >
+                  Crear evento
+                </Link>
+              </div>
+            </div>
+
+            {/* Tareas recientes */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '2rem',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ 
+                  margin: 0, 
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: '#1f2937'
+                }}>
+                  ✅ Tareas Recientes
+                </h2>
+                <Link to="/tareas" style={{ 
+                  color: config.color_primario || '#667eea',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.9rem'
+                }}>
+                  Ver todas →
+                </Link>
+              </div>
+              <div style={{
+                padding: '3rem',
+                textAlign: 'center',
+                color: '#9ca3af',
+                background: 'rgba(249, 250, 251, 0.5)',
+                borderRadius: '12px',
+                border: '2px dashed #e5e7eb'
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+                <p style={{ margin: 0, fontSize: '1.1rem' }}>No hay tareas registradas</p>
+                <Link to="/tareas" style={{
+                  display: 'inline-block',
+                  marginTop: '1rem',
+                  padding: '0.75rem 1.5rem',
+                  background: '#3b82f6',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                >
+                  Crear tarea
+                </Link>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-4">
-            <div className="card">
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📅</div>
-              <h3 style={{ color: 'var(--primary-color)', fontSize: '2rem' }}>0</h3>
-              <p>Eventos Próximos</p>
-            </div>
-
-            <div className="card">
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
-              <h3 style={{ color: 'var(--success-color)', fontSize: '2rem' }}>0</h3>
-              <p>Tareas Completadas</p>
-            </div>
-
-            <div className="card">
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏰</div>
-              <h3 style={{ color: 'var(--warning-color)', fontSize: '2rem' }}>0</h3>
-              <p>Tareas Pendientes</p>
-            </div>
-
-            <div className="card">
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔔</div>
-              <h3 style={{ color: 'var(--info-color)', fontSize: '2rem' }}>0</h3>
-              <p>Notificaciones</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2" style={{ marginTop: '2rem' }}>
-            <div className="card">
-              <h2 style={{ marginBottom: '1rem' }}>Próximos Eventos</h2>
-              <p style={{ color: 'var(--text-color)' }}>
-                No hay eventos programados
-              </p>
-            </div>
-
-            <div className="card">
-              <h2 style={{ marginBottom: '1rem' }}>Tareas Recientes</h2>
-              <p style={{ color: 'var(--text-color)' }}>
-                No hay tareas registradas
-              </p>
-            </div>
-          </div>
-
-          <div className="card" style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <h2 style={{ marginBottom: '1rem' }}>🚀 Sistema en Desarrollo</h2>
-            <p style={{ color: 'var(--text-color)', marginBottom: '1rem' }}>
-              El sistema está configurado y listo. Los módulos de calendario, eventos, 
-              tareas y reportes serán implementados a continuación.
+          {/* Accesos rápidos */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            padding: '2.5rem',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ 
+              marginBottom: '1.5rem',
+              fontSize: '1.75rem',
+              fontWeight: '700',
+              color: '#1f2937'
+            }}>
+              🚀 Accesos Rápidos
+            </h2>
+            <p style={{ 
+              color: '#6b7280', 
+              marginBottom: '2rem',
+              fontSize: '1.1rem'
+            }}>
+              Accede rápidamente a las funciones principales del sistema
             </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/calendario" className="btn btn-primary">Ver Calendario</Link>
-              <Link to="/eventos" className="btn btn-secondary">Gestionar Eventos</Link>
-              <Link to="/tareas" className="btn btn-secondary">Gestionar Tareas</Link>
-              <Link to="/reportes" className="btn btn-secondary">Generar Reportes</Link>
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem'
+            }}>
+              {[
+                { to: '/calendario', icon: '📅', label: 'Ver Calendario', color: '#667eea' },
+                { to: '/eventos', icon: '🎯', label: 'Gestionar Eventos', color: '#f59e0b' },
+                { to: '/tareas', icon: '✅', label: 'Gestionar Tareas', color: '#10b981' },
+                { to: '/reportes', icon: '📊', label: 'Generar Reportes', color: '#8b5cf6' }
+              ].map((item, index) => (
+                <Link 
+                  key={index}
+                  to={item.to} 
+                  style={{
+                    padding: '1.5rem',
+                    background: 'white',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    color: '#1f2937',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.3s',
+                    border: '2px solid transparent',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.12)';
+                    e.currentTarget.style.borderColor = item.color;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                >
+                  <div style={{ fontSize: '2.5rem' }}>{item.icon}</div>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

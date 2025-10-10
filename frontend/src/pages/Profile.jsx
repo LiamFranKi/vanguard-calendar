@@ -61,6 +61,14 @@ function Profile() {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El archivo es demasiado grande. Máximo 5MB'
+        });
+        return;
+      }
       setAvatar(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -72,9 +80,13 @@ function Profile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (formData.clave && formData.clave !== formData.confirmarClave) {
-      Swal.fire('Error', 'Las claves no coinciden', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Las contraseñas no coinciden'
+      });
       return;
     }
 
@@ -90,21 +102,33 @@ function Profile() {
         dataToSend.clave = formData.clave;
       }
 
-      await axios.put('/api/profile/me', dataToSend);
-      
-      // Si hay avatar, subirlo
+      await axios.put('/api/profile/update', dataToSend);
+
       if (avatar) {
-        const formData = new FormData();
-        formData.append('avatar', avatar);
-        await axios.post('/api/profile/avatar', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const formDataFile = new FormData();
+        formDataFile.append('avatar', avatar);
+        await axios.post('/api/profile/upload-avatar', formDataFile);
       }
 
-      Swal.fire('¡Éxito!', 'Perfil actualizado correctamente', 'success');
+      Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: 'Perfil actualizado correctamente'
+      });
+
+      setFormData({
+        ...formData,
+        clave: '',
+        confirmarClave: ''
+      });
+      setAvatar(null);
       fetchProfile();
     } catch (error) {
-      Swal.fire('Error', error.response?.data?.message || 'Error al actualizar perfil', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Error al actualizar el perfil'
+      });
     }
   };
 
@@ -124,58 +148,151 @@ function Profile() {
   }
 
   return (
-    <div>
-      <nav className="navbar">
-        <div className="container">
-          <Link to="/dashboard" className="navbar-brand">
+    <div style={{
+      minHeight: '100vh',
+      background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}CC 0%, ${config.color_secundario || '#764ba2'}CC 100%)`,
+      position: 'relative'
+    }}>
+      {/* Navbar moderna */}
+      <nav style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        padding: '1rem 0',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
+      }}>
+        <div className="container" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Link to="/dashboard" style={{
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#1f2937'
+          }}>
             {config.logo ? (
               <img 
                 src={`http://localhost:5000${config.logo}`} 
                 alt="Logo" 
                 style={{ 
-                  width: '30px', 
-                  height: '30px', 
-                  objectFit: 'contain',
-                  marginRight: '0.5rem'
+                  width: '40px', 
+                  height: '40px', 
+                  objectFit: 'contain'
                 }} 
               />
             ) : (
-              <span style={{ marginRight: '0.5rem' }}>📅</span>
+              <span style={{ fontSize: '2rem' }}>📅</span>
             )}
-            {config.nombre_proyecto}
+            <span>{config.nombre_proyecto}</span>
           </Link>
-          <ul className="navbar-nav">
-            <li><Link to="/dashboard">Dashboard</Link></li>
+          
+          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <Link to="/dashboard" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Dashboard</Link>
+            <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
+            <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
+            <Link to="/tareas" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Tareas</Link>
             {user?.rol === 'administrador' && (
               <>
-                <li><Link to="/users">Usuarios</Link></li>
-                <li><Link to="/settings">Configuración</Link></li>
+                <Link to="/users" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Usuarios</Link>
+                <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
               </>
             )}
-            <li><Link to="/profile">Mi Perfil</Link></li>
-            <li><button onClick={handleLogout} className="btn btn-secondary">Salir</button></li>
-          </ul>
+            <Link to="/profile" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '500' }}>Mi Perfil</Link>
+            
+              <button 
+                onClick={handleLogout} 
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#3b82f6',
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+                }}
+              >
+                Salir
+              </button>
+          </div>
         </div>
       </nav>
 
-      <main className="main-content">
+      {/* Contenido principal */}
+      <main style={{ padding: '3rem 0' }}>
         <div className="container">
-          <h1 style={{ marginBottom: '2rem' }}>Mi Perfil</h1>
+          {/* Título de página */}
+          <div style={{
+            marginBottom: '2rem'
+          }}>
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '2.5rem', 
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              padding: '1.5rem 2rem',
+              borderRadius: '16px',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              color: '#1f2937',
+              fontWeight: '800'
+            }}>
+              👤 Mi Perfil
+            </h1>
+          </div>
 
-          <div className="grid grid-cols-2">
-            {/* Columna 1: Avatar */}
-            <div className="card">
-              <h2 style={{ marginBottom: '1.5rem' }}>Foto de Perfil</h2>
-              
-              <div style={{ textAlign: 'center' }}>
+          <form onSubmit={handleSubmit}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+              gap: '2rem',
+              marginBottom: '2rem'
+            }}>
+              {/* Card: Avatar */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '2.5rem',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                textAlign: 'center'
+              }}>
+                <h2 style={{ 
+                  marginBottom: '2rem',
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: '#1f2937'
+                }}>
+                  📸 Foto de Perfil
+                </h2>
+                
                 <div style={{
                   width: '200px',
                   height: '200px',
-                  margin: '0 auto 1.5rem',
+                  margin: '0 auto 2rem',
                   borderRadius: '50%',
                   overflow: 'hidden',
-                  border: '4px solid var(--border-color)',
-                  backgroundColor: 'var(--light-color)',
+                  border: `4px solid ${config.color_primario || '#667eea'}`,
+                  boxShadow: `0 10px 30px ${config.color_primario || '#667eea'}40`,
+                  backgroundColor: '#f3f4f6',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -187,7 +304,7 @@ function Profile() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <span style={{ fontSize: '4rem' }}>👤</span>
+                    <span style={{ fontSize: '5rem' }}>👤</span>
                   )}
                 </div>
 
@@ -198,117 +315,286 @@ function Profile() {
                   onChange={handleAvatarChange}
                   style={{ display: 'none' }}
                 />
-                <label htmlFor="avatar" className="btn btn-primary" style={{ cursor: 'pointer' }}>
-                  Cambiar Foto
+                <label 
+                  htmlFor="avatar" 
+                  style={{ 
+                    display: 'inline-block',
+                    padding: '0.75rem 2rem',
+                    background: '#3b82f6',
+                    color: 'white',
+                    borderRadius: '10px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                    transition: 'transform 0.2s',
+                    border: 'none'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                >
+                  📷 Cambiar Foto
                 </label>
-                <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-color)' }}>
+                <p style={{ 
+                  marginTop: '1.5rem', 
+                  fontSize: '0.875rem', 
+                  color: '#6b7280',
+                  lineHeight: '1.6'
+                }}>
                   Tamaño máximo: 5MB<br />
                   Formatos: JPG, PNG, GIF, WEBP
                 </p>
               </div>
 
-              <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'var(--light-color)', borderRadius: '0.5rem' }}>
-                <p><strong>DNI:</strong> {user?.dni}</p>
-                <p><strong>Rol:</strong> <span style={{ 
-                  textTransform: 'capitalize',
-                  padding: '0.25rem 0.5rem',
-                  borderRadius: '0.25rem',
-                  backgroundColor: user?.rol === 'administrador' ? '#fecaca' : user?.rol === 'docente' ? '#bfdbfe' : '#d1fae5',
-                  color: user?.rol === 'administrador' ? '#991b1b' : user?.rol === 'docente' ? '#1e40af' : '#065f46'
-                }}>{user?.rol}</span></p>
+              {/* Card: Información Personal */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '2.5rem',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)'
+              }}>
+                <h2 style={{ 
+                  marginBottom: '2rem',
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: '#1f2937'
+                }}>
+                  📋 Información Personal
+                </h2>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                      Nombres *
+                    </label>
+                    <input
+                      type="text"
+                      name="nombres"
+                      value={formData.nombres}
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '1rem',
+                        transition: 'border-color 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                      Apellidos *
+                    </label>
+                    <input
+                      type="text"
+                      name="apellidos"
+                      value={formData.apellidos}
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '1rem',
+                        transition: 'border-color 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '1rem',
+                        transition: 'border-color 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      name="telefono"
+                      value={formData.telefono}
+                      onChange={handleInputChange}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '1rem',
+                        transition: 'border-color 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Columna 2: Formulario */}
-            <div className="card">
-              <h2 style={{ marginBottom: '1.5rem' }}>Información Personal</h2>
-              
-              <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label>Nombres *</label>
-                  <input
-                    type="text"
-                    name="nombres"
-                    className="form-control"
-                    value={formData.nombres}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+            {/* Card: Cambiar Contraseña */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '2.5rem',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              marginBottom: '2rem'
+            }}>
+              <h2 style={{ 
+                marginBottom: '2rem',
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                color: '#1f2937'
+              }}>
+                🔒 Cambiar Contraseña
+              </h2>
 
-                <div className="form-group">
-                  <label>Apellidos *</label>
-                  <input
-                    type="text"
-                    name="apellidos"
-                    className="form-control"
-                    value={formData.apellidos}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="form-control"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Teléfono</label>
-                  <input
-                    type="text"
-                    name="telefono"
-                    className="form-control"
-                    value={formData.telefono}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <hr style={{ margin: '2rem 0', border: '1px solid var(--border-color)' }} />
-
-                <h3 style={{ marginBottom: '1rem' }}>Cambiar Clave</h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-color)', marginBottom: '1rem' }}>
-                  Deja en blanco si no deseas cambiar tu clave
-                </p>
-
-                <div className="form-group">
-                  <label>Nueva Clave</label>
+              <div style={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    Nueva Contraseña
+                  </label>
                   <input
                     type="password"
                     name="clave"
-                    className="form-control"
                     value={formData.clave}
                     onChange={handleInputChange}
-                    minLength="6"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Dejar en blanco para no cambiar"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>Confirmar Nueva Clave</label>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    Confirmar Contraseña
+                  </label>
                   <input
                     type="password"
                     name="confirmarClave"
-                    className="form-control"
                     value={formData.confirmarClave}
                     onChange={handleInputChange}
-                    minLength="6"
-                    placeholder="Confirma tu nueva clave"
+                    placeholder="Confirmar nueva contraseña"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   />
                 </div>
-
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-                  Guardar Cambios
-                </button>
-              </form>
+              </div>
             </div>
-          </div>
+
+            {/* Botones de acción */}
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'center'
+            }}>
+              <button
+                type="submit"
+                style={{
+                  padding: '1rem 3rem',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+                }}
+              >
+                💾 Guardar Cambios
+              </button>
+
+              <Link
+                to="/dashboard"
+                style={{
+                  padding: '1rem 3rem',
+                  background: 'white',
+                  color: '#6b7280',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '10px',
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.borderColor = config.color_primario || '#667eea';
+                  e.target.style.color = config.color_primario || '#667eea';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.color = '#6b7280';
+                }}
+              >
+                ← Volver
+              </Link>
+            </div>
+          </form>
         </div>
       </main>
     </div>
@@ -316,4 +602,3 @@ function Profile() {
 }
 
 export default Profile;
-

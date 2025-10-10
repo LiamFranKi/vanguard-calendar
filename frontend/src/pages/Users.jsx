@@ -83,13 +83,11 @@ function Users() {
       }
       
       if (editingUser) {
-        // Actualizar usuario
         await axios.put(`/api/users/${editingUser.id}`, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         Swal.fire('¡Éxito!', 'Usuario actualizado correctamente', 'success');
       } else {
-        // Crear usuario
         await axios.post('/api/users', formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -101,7 +99,8 @@ function Users() {
       resetForm();
       fetchUsers();
     } catch (error) {
-      Swal.fire('Error', error.response?.data?.message || 'Error al guardar usuario', 'error');
+      console.error('Error al guardar usuario:', error);
+      Swal.fire('Error', error.response?.data?.message || 'Error al guardar el usuario', 'error');
     }
   };
 
@@ -131,8 +130,8 @@ function Users() {
       text: 'Esta acción no se puede deshacer',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
     });
@@ -143,18 +142,20 @@ function Users() {
         Swal.fire('¡Eliminado!', 'El usuario ha sido eliminado', 'success');
         fetchUsers();
       } catch (error) {
-        Swal.fire('Error', error.response?.data?.message || 'Error al eliminar usuario', 'error');
+        console.error('Error al eliminar usuario:', error);
+        Swal.fire('Error', error.response?.data?.message || 'Error al eliminar el usuario', 'error');
       }
     }
   };
 
   const handleToggleStatus = async (id) => {
     try {
-      await axios.patch(`/api/users/${id}/toggle-status`);
-      Swal.fire('¡Actualizado!', 'Estado del usuario actualizado', 'success');
+      await axios.put(`/api/users/${id}/toggle-status`);
+      Swal.fire('¡Éxito!', 'Estado del usuario actualizado', 'success');
       fetchUsers();
     } catch (error) {
-      Swal.fire('Error', 'Error al actualizar estado', 'error');
+      console.error('Error al cambiar estado:', error);
+      Swal.fire('Error', 'Error al cambiar el estado del usuario', 'error');
     }
   };
 
@@ -177,145 +178,298 @@ function Users() {
     navigate('/');
   };
 
-  // Mostrar loading mientras se verifica la autenticación o se cargan los datos
   if (authLoading || loading) {
     return <div className="loading"><div className="spinner"></div></div>;
   }
 
-  // Si no está autenticado o no es admin, mostrar loading (será redirigido)
   if (!isAuthenticated || user?.rol !== 'administrador') {
     return <div className="loading"><div className="spinner"></div></div>;
   }
 
   return (
-    <div>
-      <nav className="navbar">
-        <div className="container">
-          <Link to="/dashboard" className="navbar-brand">
+    <div style={{
+      minHeight: '100vh',
+      background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}CC 0%, ${config.color_secundario || '#764ba2'}CC 100%)`,
+      position: 'relative'
+    }}>
+      {/* Navbar moderna */}
+      <nav style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        padding: '1rem 0',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
+      }}>
+        <div className="container" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Link to="/dashboard" style={{
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#1f2937'
+          }}>
             {config.logo ? (
               <img 
                 src={`http://localhost:5000${config.logo}`} 
                 alt="Logo" 
                 style={{ 
-                  width: '30px', 
-                  height: '30px', 
-                  objectFit: 'contain',
-                  marginRight: '0.5rem'
+                  width: '40px', 
+                  height: '40px', 
+                  objectFit: 'contain'
                 }} 
               />
             ) : (
-              <span style={{ marginRight: '0.5rem' }}>📅</span>
+              <span style={{ fontSize: '2rem' }}>📅</span>
             )}
-            {config.nombre_proyecto}
+            <span>{config.nombre_proyecto}</span>
           </Link>
-          <ul className="navbar-nav">
-            <li><Link to="/dashboard">Dashboard</Link></li>
-            <li><Link to="/users">Usuarios</Link></li>
-            <li><Link to="/settings">Configuración</Link></li>
-            <li><Link to="/profile">Mi Perfil</Link></li>
-            <li><button onClick={handleLogout} className="btn btn-secondary">Salir</button></li>
-          </ul>
+          
+          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <Link to="/dashboard" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Dashboard</Link>
+            <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
+            <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
+            <Link to="/tareas" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Tareas</Link>
+            <Link to="/users" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '500' }}>Usuarios</Link>
+            <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
+            <Link to="/profile" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Mi Perfil</Link>
+            
+            <button 
+              onClick={handleLogout} 
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#3b82f6',
+                color: 'white',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+              }}
+            >
+              Salir
+            </button>
+          </div>
         </div>
       </nav>
 
-      <main className="main-content">
+      {/* Contenido principal */}
+      <main style={{ padding: '3rem 0' }}>
         <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h1>Gestión de Usuarios</h1>
+          {/* Header con título y botón */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+            flexWrap: 'wrap',
+            gap: '1rem'
+          }}>
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '2.5rem', 
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              padding: '1.5rem 2rem',
+              borderRadius: '16px',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              color: '#1f2937',
+              fontWeight: '800',
+              flex: 1
+            }}>
+              👥 Gestión de Usuarios
+            </h1>
+            
             <button 
-              className="btn btn-primary" 
               onClick={() => { resetForm(); setEditingUser(null); setShowModal(true); }}
+              style={{
+                padding: '1rem 2rem',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+              }}
             >
-              + Nuevo Usuario
+              ➕ Nuevo Usuario
             </button>
           </div>
 
-          <div className="card">
-            <table className="table">
+          {/* Tabla de usuarios */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            padding: '2rem',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            overflowX: 'auto'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr>
-                  <th>Avatar</th>
-                  <th>DNI</th>
-                  <th>Nombres</th>
-                  <th>Apellidos</th>
-                  <th>Email</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
+                <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '700', color: '#1f2937' }}>Avatar</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '700', color: '#1f2937' }}>DNI</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '700', color: '#1f2937' }}>Nombres</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '700', color: '#1f2937' }}>Apellidos</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '700', color: '#1f2937' }}>Email</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '700', color: '#1f2937' }}>Rol</th>
+                  <th style={{ padding: '1rem', textAlign: 'center', fontWeight: '700', color: '#1f2937' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td>
+                {users.map((userItem) => (
+                  <tr key={userItem.id} style={{ 
+                    borderBottom: '1px solid #e5e7eb',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <td style={{ padding: '1rem' }}>
                       <div style={{
-                        width: '40px',
-                        height: '40px',
-                        margin: '0 auto',
+                        width: '50px',
+                        height: '50px',
                         borderRadius: '50%',
                         overflow: 'hidden',
-                        backgroundColor: 'var(--light-color)',
+                        backgroundColor: '#f3f4f6',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        border: `2px solid ${config.color_primario || '#667eea'}30`
                       }}>
-                        {user.avatar ? (
+                        {userItem.avatar ? (
                           <img 
-                            src={`http://localhost:5000${user.avatar}`} 
-                            alt={user.nombres}
+                            src={`http://localhost:5000${userItem.avatar}`} 
+                            alt={userItem.nombres}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         ) : (
-                          <span>👤</span>
+                          <span style={{ fontSize: '1.5rem' }}>👤</span>
                         )}
                       </div>
                     </td>
-                    <td>{user.dni}</td>
-                    <td>{user.nombres}</td>
-                    <td>{user.apellidos}</td>
-                    <td>{user.email || '-'}</td>
-                    <td>
-                      <span style={{ 
-                        padding: '0.25rem 0.5rem', 
-                        borderRadius: '0.25rem', 
-                        fontSize: '0.875rem',
-                        backgroundColor: user.rol === 'administrador' ? '#fecaca' : user.rol === 'docente' ? '#bfdbfe' : '#d1fae5',
-                        color: user.rol === 'administrador' ? '#991b1b' : user.rol === 'docente' ? '#1e40af' : '#065f46'
+                    <td style={{ padding: '1rem', fontWeight: '500', color: '#374151' }}>{userItem.dni}</td>
+                    <td style={{ padding: '1rem', color: '#374151' }}>{userItem.nombres}</td>
+                    <td style={{ padding: '1rem', color: '#374151' }}>{userItem.apellidos}</td>
+                    <td style={{ padding: '1rem', color: '#6b7280', fontSize: '0.9rem' }}>{userItem.email || '-'}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{
+                        padding: '0.375rem 0.75rem',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        background: userItem.rol === 'administrador' 
+                          ? 'linear-gradient(135deg, #f87171, #dc2626)' 
+                          : userItem.rol === 'docente' 
+                          ? 'linear-gradient(135deg, #60a5fa, #2563eb)' 
+                          : 'linear-gradient(135deg, #34d399, #059669)',
+                        color: 'white',
+                        textTransform: 'capitalize',
+                        display: 'inline-block'
                       }}>
-                        {user.rol}
+                        {userItem.rol}
                       </span>
                     </td>
-                    <td>
-                      <span style={{ 
-                        padding: '0.25rem 0.5rem', 
-                        borderRadius: '0.25rem', 
-                        fontSize: '0.875rem',
-                        backgroundColor: user.activo ? '#d1fae5' : '#fee2e2',
-                        color: user.activo ? '#065f46' : '#991b1b'
-                      }}>
-                        {user.activo ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
                         <button 
-                          className="btn btn-secondary" 
-                          onClick={() => handleEdit(user)}
+                          onClick={() => handleEdit(userItem)}
                           title="Editar"
+                          style={{
+                            padding: '0.375rem',
+                            background: 'transparent',
+                            color: '#3b82f6',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '1.1rem',
+                            transition: 'transform 0.2s, color 0.2s',
+                            borderRadius: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.15)';
+                            e.target.style.color = '#2563eb';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                            e.target.style.color = '#3b82f6';
+                          }}
                         >
                           ✏️
                         </button>
                         <button 
-                          className="btn btn-secondary" 
-                          onClick={() => handleToggleStatus(user.id)}
-                          title={user.activo ? 'Desactivar' : 'Activar'}
+                          onClick={() => handleToggleStatus(userItem.id)}
+                          title={userItem.activo ? 'Desactivar' : 'Activar'}
+                          style={{
+                            padding: '0.375rem',
+                            background: 'transparent',
+                            color: userItem.activo ? '#f59e0b' : '#10b981',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '1.1rem',
+                            transition: 'transform 0.2s, color 0.2s',
+                            borderRadius: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                          }}
                         >
-                          {user.activo ? '🔒' : '🔓'}
+                          {userItem.activo ? '🔒' : '🔓'}
                         </button>
                         <button 
-                          className="btn btn-danger" 
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDelete(userItem.id)}
                           title="Eliminar"
+                          style={{
+                            padding: '0.375rem',
+                            background: 'transparent',
+                            color: '#ef4444',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '1.1rem',
+                            transition: 'transform 0.2s, color 0.2s',
+                            borderRadius: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.15)';
+                            e.target.style.color = '#dc2626';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                            e.target.style.color = '#ef4444';
+                          }}
                         >
                           🗑️
                         </button>
@@ -325,6 +479,17 @@ function Users() {
                 ))}
               </tbody>
             </table>
+
+            {users.length === 0 && (
+              <div style={{
+                padding: '4rem 2rem',
+                textAlign: 'center',
+                color: '#9ca3af'
+              }}>
+                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>👥</div>
+                <p style={{ fontSize: '1.1rem', margin: 0 }}>No hay usuarios registrados</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -337,28 +502,54 @@ function Users() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div className="card" style={{ maxWidth: '600px', width: '100%', margin: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>
-              {editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}
+          zIndex: 1000,
+          padding: '1rem'
+        }}
+        onClick={() => { setShowModal(false); setEditingUser(null); resetForm(); }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '24px',
+              padding: '2.5rem',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
+            <h2 style={{ 
+              marginBottom: '2rem',
+              fontSize: '2rem',
+              fontWeight: '800',
+              background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}, ${config.color_secundario || '#764ba2'})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {editingUser ? '✏️ Editar Usuario' : '➕ Nuevo Usuario'}
             </h2>
             
             <form onSubmit={handleSubmit}>
               {/* Avatar */}
-              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <div style={{
-                  width: '120px',
-                  height: '120px',
-                  margin: '0 auto 1rem',
+                  width: '140px',
+                  height: '140px',
+                  margin: '0 auto 1.5rem',
                   borderRadius: '50%',
                   overflow: 'hidden',
-                  border: '3px solid var(--border-color)',
-                  backgroundColor: 'var(--light-color)',
+                  border: `4px solid ${config.color_primario || '#667eea'}`,
+                  boxShadow: `0 10px 30px ${config.color_primario || '#667eea'}40`,
+                  backgroundColor: '#f3f4f6',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -370,7 +561,7 @@ function Users() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <span style={{ fontSize: '4rem' }}>👤</span>
+                    <span style={{ fontSize: '5rem' }}>👤</span>
                   )}
                 </div>
 
@@ -381,110 +572,259 @@ function Users() {
                   onChange={handleAvatarChange}
                   style={{ display: 'none' }}
                 />
-                <label htmlFor="avatar-upload" className="btn btn-secondary" style={{ cursor: 'pointer', fontSize: '0.875rem' }}>
-                  Cambiar Foto
+                <label 
+                  htmlFor="avatar-upload" 
+                  style={{
+                    display: 'inline-block',
+                    padding: '0.75rem 1.5rem',
+                    background: '#3b82f6',
+                    color: 'white',
+                    borderRadius: '10px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                >
+                  📷 Cambiar Foto
                 </label>
               </div>
 
-              <div className="form-group">
-                <label>DNI *</label>
-                <input
-                  type="text"
-                  name="dni"
-                  className="form-control"
-                  value={formData.dni}
-                  onChange={handleInputChange}
-                  required
-                  maxLength="8"
-                  disabled={editingUser}
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    DNI *
+                  </label>
+                  <input
+                    type="text"
+                    name="dni"
+                    value={formData.dni}
+                    onChange={handleInputChange}
+                    required
+                    maxLength="8"
+                    disabled={editingUser}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none',
+                      backgroundColor: editingUser ? '#f3f4f6' : 'white',
+                      cursor: editingUser ? 'not-allowed' : 'text'
+                    }}
+                    onFocus={(e) => !editingUser && (e.target.style.borderColor = config.color_primario || '#667eea')}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                      Nombres *
+                    </label>
+                    <input
+                      type="text"
+                      name="nombres"
+                      value={formData.nombres}
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '1rem',
+                        transition: 'border-color 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                      Apellidos *
+                    </label>
+                    <input
+                      type="text"
+                      name="apellidos"
+                      value={formData.apellidos}
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '10px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '1rem',
+                        transition: 'border-color 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    Teléfono
+                  </label>
+                  <input
+                    type="text"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleInputChange}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    Clave {editingUser && <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: '400' }}>(dejar en blanco para no cambiar)</span>}
+                  </label>
+                  <input
+                    type="password"
+                    name="clave"
+                    value={formData.clave}
+                    onChange={handleInputChange}
+                    required={!editingUser}
+                    minLength="6"
+                    placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Mínimo 6 caracteres"}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                    Rol *
+                  </label>
+                  <select
+                    name="rol"
+                    value={formData.rol}
+                    onChange={handleInputChange}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '2px solid #e5e7eb',
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  >
+                    <option value="estudiante">Estudiante</option>
+                    <option value="docente">Docente</option>
+                    <option value="administrador">Administrador</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Nombres *</label>
-                <input
-                  type="text"
-                  name="nombres"
-                  className="form-control"
-                  value={formData.nombres}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Apellidos *</label>
-                <input
-                  type="text"
-                  name="apellidos"
-                  className="form-control"
-                  value={formData.apellidos}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  className="form-control"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Teléfono</label>
-                <input
-                  type="text"
-                  name="telefono"
-                  className="form-control"
-                  value={formData.telefono}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Clave {editingUser && '(dejar en blanco para no cambiar)'}</label>
-                <input
-                  type="password"
-                  name="clave"
-                  className="form-control"
-                  value={formData.clave}
-                  onChange={handleInputChange}
-                  required={!editingUser}
-                  minLength="6"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Rol *</label>
-                <select
-                  name="rol"
-                  className="form-control"
-                  value={formData.rol}
-                  onChange={handleInputChange}
-                  required
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                <button 
+                  type="submit" 
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '1.05rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                    transition: 'transform 0.2s, box-shadow 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+                  }}
                 >
-                  <option value="estudiante">Estudiante</option>
-                  <option value="docente">Docente</option>
-                  <option value="administrador">Administrador</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                  {editingUser ? 'Actualizar' : 'Crear'}
+                  {editingUser ? '💾 Actualizar' : '✓ Crear'}
                 </button>
                 <button 
                   type="button" 
-                  className="btn btn-secondary" 
-                  style={{ flex: 1 }}
                   onClick={() => { setShowModal(false); setEditingUser(null); resetForm(); }}
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    background: 'white',
+                    color: '#6b7280',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '1.05rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = '#ef4444';
+                    e.target.style.color = '#ef4444';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.color = '#6b7280';
+                  }}
                 >
-                  Cancelar
+                  ✗ Cancelar
                 </button>
               </div>
             </form>
@@ -496,4 +836,3 @@ function Users() {
 }
 
 export default Users;
-
