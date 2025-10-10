@@ -300,7 +300,8 @@ function Dashboard() {
                 transition: 'transform 0.3s, box-shadow 0.3s',
                 cursor: 'pointer',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                textAlign: 'center'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-8px)';
