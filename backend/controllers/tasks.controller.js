@@ -248,9 +248,9 @@ export const createTask = async (req, res) => {
     if (assignees && assignees.length > 0) {
       for (const assigneeId of assignees) {
         await query(`
-          INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol, assigned_by)
-          VALUES ($1, $2, $3, $4)
-        `, [task.id, assigneeId, 'asignado', userId]);
+          INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol)
+          VALUES ($1, $2, $3)
+        `, [task.id, assigneeId, 'asignado']);
       }
     }
 
@@ -364,9 +364,9 @@ export const updateTask = async (req, res) => {
           for (const assigneeId of assignees) {
             console.log(`➕ Asignando usuario ${assigneeId} a tarea ${id}`);
             await query(`
-              INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol, assigned_by)
-              VALUES ($1, $2, $3, $4)
-            `, [id, assigneeId, 'asignado', userId]);
+              INSERT INTO tarea_asignaciones (tarea_id, usuario_id, rol)
+              VALUES ($1, $2, $3)
+            `, [id, assigneeId, 'asignado']);
           }
           console.log('✅ Todas las asignaciones guardadas');
         }
