@@ -2,16 +2,25 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
+import axios from 'axios';
 
 function Dashboard() {
   const { user, isAuthenticated, logout, loading } = useAuth();
   const { config } = useConfig();
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [stats, setStats] = useState({
+    tareasPendientes: 0,
+    tareasCompletadas: 0,
+    eventosProximos: 0,
+    notificaciones: 0
+  });
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate('/login');
+    } else if (!loading && isAuthenticated) {
+      fetchStats();
     }
   }, [isAuthenticated, loading, navigate]);
 
@@ -19,6 +28,26 @@ function Dashboard() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Obtener tareas
+      const tasksResponse = await axios.get('/api/tasks');
+      if (tasksResponse.data.success) {
+        const tasks = tasksResponse.data.data;
+        const pendientes = tasks.filter(t => t.status === 'pendiente' || t.status === 'en_progreso').length;
+        const completadas = tasks.filter(t => t.status === 'completada').length;
+        
+        setStats(prev => ({
+          ...prev,
+          tareasPendientes: pendientes,
+          tareasCompletadas: completadas
+        }));
+      }
+    } catch (error) {
+      console.error('Error al obtener estadísticas:', error);
+    }
+  };
 
   // Mostrar loading mientras se verifica la autenticación
   if (loading) {
@@ -256,10 +285,10 @@ function Dashboard() {
             marginBottom: '2rem'
           }}>
             {[
-              { icon: '📅', label: 'Eventos Próximos', value: '0', gradient: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#667eea' },
-              { icon: '✅', label: 'Tareas Completadas', value: '0', gradient: 'linear-gradient(135deg, #34d399, #059669)', color: '#10b981' },
-              { icon: '⏰', label: 'Tareas Pendientes', value: '0', gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#f59e0b' },
-              { icon: '🔔', label: 'Notificaciones', value: '0', gradient: 'linear-gradient(135deg, #60a5fa, #2563eb)', color: '#3b82f6' }
+              { icon: '📅', label: 'Eventos Próximos', value: stats.eventosProximos, gradient: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#667eea' },
+              { icon: '✅', label: 'Tareas Completadas', value: stats.tareasCompletadas, gradient: 'linear-gradient(135deg, #34d399, #059669)', color: '#10b981' },
+              { icon: '⏰', label: 'Tareas Pendientes', value: stats.tareasPendientes, gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#f59e0b' },
+              { icon: '🔔', label: 'Notificaciones', value: stats.notificaciones, gradient: 'linear-gradient(135deg, #60a5fa, #2563eb)', color: '#3b82f6' }
             ].map((stat, index) => (
               <div key={index} style={{
                 background: 'rgba(255, 255, 255, 0.95)',
