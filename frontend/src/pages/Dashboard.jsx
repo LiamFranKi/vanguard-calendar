@@ -39,8 +39,8 @@ function Dashboard() {
         const pendientes = tasks.filter(t => t.status === 'pendiente' || t.status === 'en_progreso').length;
         const completadas = tasks.filter(t => t.status === 'completada').length;
         
-        // Últimas 5 tareas más recientes
-        const recent = tasks.slice(0, 5);
+        // Últimas 3 tareas más recientes
+        const recent = tasks.slice(0, 3);
         
         setStats(prev => ({
           ...prev,
