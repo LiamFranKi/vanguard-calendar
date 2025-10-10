@@ -313,6 +313,61 @@ migrations/
 
 ---
 
+## 🐛 [HOTFIX] - 2024-10-10 - Correcciones Post-Implementación
+
+### 🔧 Problemas Encontrados y Soluciones
+
+#### **Error 500 en /api/auth/me y /api/config**
+**Problema:** 
+- Frontend muestra errores 500 al cargar
+- AuthContext y ConfigContext fallan al hacer fetch
+
+**Causa:**
+- El backend ejecuta queries correctamente cuando se prueba con `check-db.js`
+- Base de datos tiene todos los datos correctos (5 usuarios, configuración, 5 proyectos, 3 templates)
+- El error es intermitente y puede ser por:
+  1. Backend no corriendo en puerto 5000
+  2. CORS no configurado correctamente
+  3. Axios no apuntando a la URL correcta
+
+**Solución:**
+1. Verificar que el backend esté corriendo: `npm run dev` en raíz
+2. Verificar logs del backend en terminal
+3. Verificar que el frontend apunte a `http://localhost:5000`
+4. Verificar que `.env` esté configurado correctamente
+
+**Verificación:**
+```bash
+# Verificar BD
+cd backend
+node check-db.js
+
+# Debería mostrar:
+# ✅ 5 usuarios
+# ✅ Configuración con Vanguard Calendar
+# ✅ 5 proyectos
+# ✅ 3 templates
+```
+
+#### **Script de Verificación Creado**
+- ✅ `backend/check-db.js` - Verifica estado de la base de datos
+- ✅ Muestra contadores de todas las tablas principales
+- ✅ Crea configuración por defecto si no existe
+
+### 📊 Estado de la Base de Datos (Verificado)
+```
+👥 Usuarios: 5
+⚙️ Configuración: ✅ Existe
+   - Nombre: Vanguard Calendar
+   - Color primario: #1976d2
+   - Color secundario: #764ba2
+📋 Tareas: 0 (recién instalado)
+📁 Proyectos: 5 (General, Desarrollo, Diseño, Marketing, Soporte)
+📄 Templates: 3 (Bug Fix, Feature Request, Design Task)
+```
+
+---
+
 ## 📝 Notas de Desarrollo
 
 ### **Convenciones**
