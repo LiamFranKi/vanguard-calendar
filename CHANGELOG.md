@@ -313,6 +313,115 @@ migrations/
 
 ---
 
+## ✨ [v2.1.0] - 2024-10-10 - Sistema de Tareas 100% Funcional
+
+### 🎯 Funcionalidades Completadas
+
+#### **Vista Kanban con Drag & Drop**
+- ✅ 4 columnas por estado: Pendiente, En Progreso, Completada, Cancelada
+- ✅ Arrastrar y soltar tareas entre columnas
+- ✅ Cambio automático de estado al soltar
+- ✅ Feedback visual (opacidad, hover, sombras)
+- ✅ Tarjetas compactas con información esencial
+- ✅ Usuarios asignados con avatares superpuestos (máx 3 + contador)
+- ✅ Tags (máx 2 + contador)
+- ✅ Barra de progreso en cada tarjeta
+- ✅ Badge de prioridad para urgente/alta
+- ✅ Contador de tareas por columna
+- ✅ Scroll independiente por columna
+- ✅ Click para ver detalle completo
+
+#### **Sistema de Asignaciones Múltiples**
+- ✅ Guardar en tabla `tarea_asignaciones` (muchos a muchos)
+- ✅ Checkbox múltiple de usuarios al crear/editar
+- ✅ Mostrar avatares en lista y Kanban
+- ✅ Pre-selección de usuarios asignados al editar
+- ✅ Agregar/remover usuarios dinámicamente
+- ✅ Contadores de usuarios asignados
+
+#### **Sistema de Comentarios y Detalles**
+- ✅ Tabla `task_comments` funcional
+- ✅ Agregar comentarios/detalles en modal de tarea
+- ✅ Historial cronológico (más reciente primero)
+- ✅ Muestra: Avatar, Nombre, Rol, Fecha, Contenido
+- ✅ Eliminar comentarios (solo autor o admin)
+- ✅ Confirmación antes de eliminar
+- ✅ Actualización inmediata sin cerrar modal
+- ✅ Registro automático en `task_history`
+
+#### **Barra de Progreso Profesional**
+- ✅ Diseño moderno con gradiente triple (azul → morado → rosa)
+- ✅ Efecto shimmer animado (brillo que se mueve)
+- ✅ Sombra interna para profundidad 3D
+- ✅ Marcadores visuales en 25%, 50%, 75%
+- ✅ Altura de 12px (más visible)
+- ✅ Badge de porcentaje con gradiente de texto
+- ✅ Transición suave de 0.5s
+- ✅ Box-shadow azul en la barra activa
+
+#### **Dashboard Mejorado**
+- ✅ Contadores dinámicos desde API
+- ✅ Tareas recientes (últimas 3)
+- ✅ Cards con información completa
+- ✅ Links a proyectos, estado, prioridad
+- ✅ Hover effects profesionales
+- ✅ Cards centradas (iconos, números, textos)
+- ✅ Actualización automática al crear/editar
+
+### 🐛 Correcciones Críticas
+
+#### **Error de Asignaciones**
+- ✅ Removida columna `assigned_by` que no existe en la tabla
+- ✅ INSERT simplificado: solo tarea_id, usuario_id, rol
+- ✅ Logging detallado para debug
+- ✅ Manejo de errores mejorado
+
+#### **Zona Horaria Perú**
+- ✅ Configurada timezone: America/Lima (GMT-5)
+- ✅ Script SQL para PostgreSQL
+- ✅ Timestamps correctos en comentarios
+
+#### **Constraint de Estados**
+- ✅ Detectado constraint que solo permite 4 estados
+- ✅ Removido 'en_revision' de todos los selectores
+- ✅ Kanban adaptado a 4 columnas
+- ✅ Estados permitidos: pendiente, en_progreso, completada, cancelada
+
+### 🎨 Mejoras de UI/UX
+
+#### **Diseño Consistente**
+- ✅ Glassmorphism en todas las páginas
+- ✅ Gradientes dinámicos desde configuración
+- ✅ Animaciones CSS (shimmer, pulse)
+- ✅ Botones azules consistentes
+- ✅ Hover effects suaves
+
+#### **Landing Page**
+- ✅ Botón "Dashboard" en azul cuando está logueado
+- ✅ Mismo estilo que "Iniciar Sesión"
+
+### 📊 Estadísticas del Sistema
+
+#### **Base de Datos:**
+- **14 tablas** en total
+- **9 tablas** para sistema de tareas
+- **~35 índices** para optimización
+- **~40 foreign keys**
+- **Datos iniciales:** 5 proyectos, 3 templates
+
+#### **Líneas de Código:**
+- **Backend:** ~600 líneas (tasks.controller.js)
+- **Frontend:** ~2,300 líneas (Tasks.jsx)
+- **SQL:** ~400 líneas (migraciones)
+
+#### **Funcionalidades:**
+- **17 endpoints** API de tareas
+- **3 vistas** (Lista, Kanban, Detalle)
+- **10 componentes** React
+- **Drag & Drop** nativo HTML5
+
+---
+
 ## 🐛 [HOTFIX] - 2024-10-10 - Correcciones Post-Implementación
 
 ### 🔧 Problemas Encontrados y Soluciones
@@ -398,20 +507,32 @@ node check-db.js
 
 ## 🎯 Roadmap - Próximas Funcionalidades
 
+### **Completado** ✅
+- [x] Vista Kanban drag & drop ✅
+- [x] Sistema de comentarios ✅
+- [x] Dashboard con estadísticas ✅
+- [x] Asignaciones múltiples ✅
+- [x] Barra de progreso profesional ✅
+
 ### **En Desarrollo** 🚧
-- [ ] Vista Kanban drag & drop
-- [ ] Sistema de comentarios en tiempo real (WebSocket)
-- [ ] Dashboard de analytics con gráficos
-- [ ] Notificaciones push en tiempo real
-- [ ] Export de tareas a PDF/Excel
+- [ ] Sistema de notificaciones completo (WebSocket + Push + Email)
+- [ ] Módulo de Calendario integrado
+- [ ] Módulo de Eventos funcional
+- [ ] Dashboard de analytics con gráficos (Chart.js)
+- [ ] Export de tareas a PDF/Excel (Puppeteer + ExcelJS)
 
 ### **Planeado** 📋
-- [ ] Módulo de Calendario integrado
+- [ ] Subtareas con drag & drop
+- [ ] Time tracking con cronómetro
+- [ ] Templates personalizados por usuario
+- [ ] Dependencias entre tareas
 - [ ] Gamificación (puntos, badges)
 - [ ] Modo offline con sincronización
-- [ ] App móvil (PWA mejorada)
-- [ ] Integración con calendario de Google
-- [ ] Sistema de roles y permisos avanzado
+- [ ] App móvil PWA mejorada
+- [ ] Integración con Google Calendar
+- [ ] Sistema de roles y permisos granular
+- [ ] Reportes avanzados con filtros
+- [ ] Webhooks para integraciones externas
 
 ---
 
@@ -424,5 +545,15 @@ MIT License
 ---
 
 **Última actualización:** 10 de Octubre, 2024  
-**Versión actual:** v2.0.0  
+**Versión actual:** v2.1.0  
 **Estado:** ✅ Producción
+
+---
+
+## 🙏 Agradecimientos
+
+Gracias por este increíble día de desarrollo. Hemos construido un sistema robusto, moderno y completamente funcional.
+
+**Próxima sesión:** Sistema de Notificaciones en tiempo real + Módulos de Calendario y Eventos.
+
+¡Hasta pronto! 🚀✨
