@@ -4,18 +4,18 @@ import { query } from '../config/database.js';
 
 export const register = async (req, res) => {
   try {
-    const { email, password, name, role = 'estudiante' } = req.body;
+    const { email, password, nombres, apellidos, dni, rol = 'Usuario' } = req.body;
 
     // Verificar si el usuario ya existe
     const existingUser = await query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
+      'SELECT id FROM usuarios WHERE email = $1 OR dni = $2',
+      [email, dni]
     );
 
     if (existingUser.rows.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'El email ya está registrado'
+        message: 'El email o DNI ya está registrado'
       });
     }
 
@@ -24,17 +24,17 @@ export const register = async (req, res) => {
 
     // Crear usuario
     const result = await query(
-      `INSERT INTO users (email, password, name, role, created_at, updated_at) 
-       VALUES ($1, $2, $3, $4, NOW(), NOW()) 
-       RETURNING id, email, name, role, created_at`,
-      [email, hashedPassword, name, role]
+      `INSERT INTO usuarios (email, clave, nombres, apellidos, dni, rol, created_at, updated_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) 
+       RETURNING id, email, nombres, apellidos, dni, rol, created_at`,
+      [email, hashedPassword, nombres, apellidos, dni, rol]
     );
 
     const user = result.rows[0];
 
     // Generar token
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, rol: user.rol },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
@@ -46,8 +46,10 @@ export const register = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
-        role: user.role
+        nombres: user.nombres,
+        apellidos: user.apellidos,
+        dni: user.dni,
+        rol: user.rol
       }
     });
   } catch (error) {
@@ -165,7 +167,7 @@ export const changePassword = async (req, res) => {
 
     // Obtener usuario actual
     const result = await query(
-      'SELECT password FROM users WHERE id = $1',
+      'SELECT clave FROM usuarios WHERE id = $1',
       [req.userId]
     );
 
@@ -179,7 +181,7 @@ export const changePassword = async (req, res) => {
     const user = result.rows[0];
 
     // Verificar contraseña actual
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    const isValidPassword = await bcrypt.compare(currentPassword, user.clave);
 
     if (!isValidPassword) {
       return res.status(401).json({
@@ -193,7 +195,7 @@ export const changePassword = async (req, res) => {
 
     // Actualizar contraseña
     await query(
-      'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2',
+      'UPDATE usuarios SET clave = $1, updated_at = NOW() WHERE id = $2',
       [hashedPassword, req.userId]
     );
 
