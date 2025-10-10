@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Tasks from './pages/Tasks';
 import './App.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/tareas" element={<Tasks />} />
             </Routes>
           </div>
         </Router>
