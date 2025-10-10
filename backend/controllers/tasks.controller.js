@@ -223,16 +223,19 @@ export const createTask = async (req, res) => {
                 prioridad as priority, estado as status, created_at
     `;
 
+    // Convertir tags a array de PostgreSQL
+    const tagsArray = Array.isArray(tags) ? tags : [];
+
     const taskResult = await query(createTaskQuery, [
       title.trim(),
-      description,
-      due_date,
+      description || null,
+      due_date || null,
       priority,
       status,
       categoria,
-      project_id,
-      estimacion_horas,
-      tags,
+      project_id || null,
+      estimacion_horas || null,
+      tagsArray,
       userId
     ]);
 
