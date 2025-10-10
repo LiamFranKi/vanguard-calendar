@@ -8,7 +8,8 @@ import {
   getAllProjects,
   createProject,
   addComment,
-  getComments
+  getComments,
+  deleteComment
 } from '../controllers/tasks.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
@@ -46,5 +47,8 @@ router.get('/:taskId/comments', verifyToken, getComments);
 
 // Agregar comentario a una tarea
 router.post('/:taskId/comments', verifyToken, addComment);
+
+// Eliminar comentario
+router.delete('/comments/:commentId', verifyToken, deleteComment);
 
 export default router;

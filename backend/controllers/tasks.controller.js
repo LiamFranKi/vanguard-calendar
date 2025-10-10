@@ -365,11 +365,22 @@ export const updateTask = async (req, res) => {
       }
     }
 
-    // Registrar en historial
-    await query(`
-      INSERT INTO task_history (task_id, user_id, action, changes)
-      VALUES ($1, $2, $3, $4)
-    `, [id, userId, 'updated', updates]);
+    // Registrar en historial (solo cambios importantes)
+    try {
+      const changesForHistory = {};
+      if (updates.status) changesForHistory.status = updates.status;
+      if (updates.priority) changesForHistory.priority = updates.priority;
+      if (updates.progreso !== undefined) changesForHistory.progreso = updates.progreso;
+      if (assignees) changesForHistory.assignees_updated = true;
+
+      await query(`
+        INSERT INTO task_history (task_id, user_id, action, changes)
+        VALUES ($1, $2, $3, $4)
+      `, [id, userId, 'updated', JSON.stringify(changesForHistory)]);
+    } catch (historyError) {
+      console.error('Error al registrar historial:', historyError);
+      // No fallar si el historial falla
+    }
 
     res.json({
       success: true,
@@ -379,6 +390,7 @@ export const updateTask = async (req, res) => {
 
   } catch (error) {
     console.error('Error al actualizar tarea:', error);
+    console.error('Stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error al actualizar tarea',
@@ -555,6 +567,54 @@ export const getComments = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener comentarios'
+    });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.userId;
+
+    // Verificar que el comentario existe y pertenece al usuario o es admin
+    const commentResult = await query(`
+      SELECT tc.*, u.rol 
+      FROM task_comments tc
+      JOIN usuarios u ON u.id = $1
+      WHERE tc.id = $2
+    `, [userId, commentId]);
+
+    if (commentResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Comentario no encontrado'
+      });
+    }
+
+    const comment = commentResult.rows[0];
+
+    // Solo el autor o un admin pueden eliminar
+    if (comment.user_id !== userId && comment.rol !== 'Administrador') {
+      return res.status(403).json({
+        success: false,
+        message: 'No tienes permiso para eliminar este comentario'
+      });
+    }
+
+    // Eliminar comentario
+    await query('DELETE FROM task_comments WHERE id = $1', [commentId]);
+
+    res.json({
+      success: true,
+      message: 'Comentario eliminado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error al eliminar comentario:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al eliminar comentario',
+      error: error.message
     });
   }
 };

@@ -1017,6 +1017,7 @@ function Tasks() {
       {showDetailModal && selectedTask && (
         <TaskDetailModal
           task={selectedTask}
+          currentUser={user}
           handleClose={() => {
             setShowDetailModal(false);
             setSelectedTask(null);
@@ -1475,7 +1476,8 @@ function TaskFormModal({
 
 // Componente Modal de Detalle
 function TaskDetailModal({ 
-  task, 
+  task,
+  currentUser,
   handleClose, 
   handleEdit, 
   handleDelete,
@@ -1518,7 +1520,8 @@ function TaskDetailModal({
       });
 
       if (response.data.success) {
-        setComments([response.data.data, ...comments]);
+        // Recargar todos los comentarios para tener la info completa del usuario
+        await fetchComments();
         setNewComment('');
         Swal.fire({
           icon: 'success',
@@ -1530,6 +1533,37 @@ function TaskDetailModal({
     } catch (error) {
       console.error('Error al agregar comentario:', error);
       Swal.fire('Error', 'Error al agregar comentario', 'error');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar comentario?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.delete(`/api/tasks/comments/${commentId}`);
+        if (response.data.success) {
+          await fetchComments();
+          Swal.fire({
+            icon: 'success',
+            title: 'Comentario eliminado',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
+      } catch (error) {
+        console.error('Error al eliminar comentario:', error);
+        Swal.fire('Error', 'Error al eliminar comentario', 'error');
+      }
     }
   };
 
@@ -1967,6 +2001,28 @@ function TaskDetailModal({
                         })}
                       </div>
                     </div>
+
+                    {/* Botón eliminar (solo si es el autor o admin) */}
+                    {(currentUser.id === comment.user_id || currentUser.rol === 'Administrador') && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: '1.2rem',
+                          padding: '0.25rem',
+                          opacity: 0.7,
+                          transition: 'opacity 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                        title="Eliminar comentario"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
 
                   {/* Contenido del comentario */}
