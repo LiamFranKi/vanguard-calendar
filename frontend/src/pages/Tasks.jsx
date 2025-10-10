@@ -230,6 +230,10 @@ function Tasks() {
 
   const openEditModal = (task) => {
     setEditingTask(task);
+    
+    // Convertir assignees de objetos a solo IDs
+    const assigneeIds = task.assignees ? task.assignees.map(a => a.id) : [];
+    
     setFormData({
       title: task.title,
       description: task.description || '',
@@ -241,7 +245,7 @@ function Tasks() {
       estimacion_horas: task.estimacion_horas || '',
       progreso: task.progreso || 0,
       tags: task.tags || [],
-      assignees: task.assignees || []
+      assignees: assigneeIds
     });
     setShowEditModal(true);
   };
