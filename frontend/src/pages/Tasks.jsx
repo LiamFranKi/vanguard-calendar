@@ -604,7 +604,6 @@ function Tasks() {
               <option value="">Todos</option>
               <option value="pendiente">Pendiente</option>
               <option value="en_progreso">En Progreso</option>
-              <option value="en_revision">En Revisión</option>
               <option value="completada">Completada</option>
               <option value="cancelada">Cancelada</option>
             </select>
@@ -852,7 +851,6 @@ function Tasks() {
                         >
                           <option value="pendiente">{getStatusIcon('pendiente')} Pendiente</option>
                           <option value="en_progreso">{getStatusIcon('en_progreso')} En Progreso</option>
-                          <option value="en_revision">{getStatusIcon('en_revision')} En Revisión</option>
                           <option value="completada">{getStatusIcon('completada')} Completada</option>
                           <option value="cancelada">{getStatusIcon('cancelada')} Cancelada</option>
                         </select>
@@ -1177,7 +1175,6 @@ function TaskFormModal({
               >
                 <option value="pendiente">⏳ Pendiente</option>
                 <option value="en_progreso">🔄 En Progreso</option>
-                <option value="en_revision">👀 En Revisión</option>
                 <option value="completada">✅ Completada</option>
                 <option value="cancelada">❌ Cancelada</option>
               </select>
@@ -2046,7 +2043,6 @@ function KanbanView({ tasks, onTaskClick, onStatusChange, getPriorityColor, getS
   const columns = [
     { id: 'pendiente', title: '⏳ Pendiente', color: '#6b7280' },
     { id: 'en_progreso', title: '🔄 En Progreso', color: '#3b82f6' },
-    { id: 'en_revision', title: '👀 En Revisión', color: '#8b5cf6' },
     { id: 'completada', title: '✅ Completada', color: '#22c55e' },
     { id: 'cancelada', title: '❌ Cancelada', color: '#ef4444' }
   ];
@@ -2082,7 +2078,7 @@ function KanbanView({ tasks, onTaskClick, onStatusChange, getPriorityColor, getS
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
+      gridTemplateColumns: 'repeat(4, 1fr)',
       gap: '1rem',
       minHeight: '600px'
     }}>
