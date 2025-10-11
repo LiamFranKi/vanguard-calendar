@@ -173,26 +173,42 @@ function Reports() {
               <Link to="/settings" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Configuración</Link>
             </>
           )}
-          <Link to="/profile" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Mi Perfil</Link>
-          
-          <NotificationBell />
+          {/* Iconos de acción agrupados */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
+            <Link 
+              to="/profile" 
+              style={{ 
+                fontSize: '1.5rem',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'transform 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+              title="Mi Perfil"
+            >
+              👤
+            </Link>
+            
+            <NotificationBell />
 
-          <button 
-            onClick={handleLogout} 
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#3b82f6',
-              color: 'white',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
-            }}
-          >
-            Salir
-          </button>
+            <button 
+              onClick={handleLogout} 
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+                padding: 0
+              }}
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+              title="Cerrar Sesión"
+            >
+              ⎋
+            </button>
+          </div>
         </div>
       </nav>
 

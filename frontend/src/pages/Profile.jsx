@@ -205,32 +205,43 @@ function Profile() {
                 <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
               </>
             )}
-            <Link to="/profile" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '500' }}>Mi Perfil</Link>
-            
+            {/* Iconos de acción agrupados */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
+              <Link 
+                to="/profile" 
+                style={{ 
+                  fontSize: '1.5rem',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s',
+                  color: '#1f2937'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
+                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                title="Mi Perfil"
+              >
+                👤
+              </Link>
+              
+              <NotificationBell />
+
               <button 
                 onClick={handleLogout} 
                 style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '8px',
+                  background: 'none',
                   border: 'none',
-                  background: '#3b82f6',
-                  color: 'white',
-                  fontWeight: '600',
+                  fontSize: '1.5rem',
                   cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                  transition: 'transform 0.2s',
+                  padding: 0
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
-                }}
+                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
+                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                title="Cerrar Sesión"
               >
-                Salir
+                ⎋
               </button>
+            </div>
           </div>
         </div>
       </nav>
