@@ -2,9 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
-import axios from '../services/axios';
+import axios from 'axios';
 import Swal from 'sweetalert2';
 import NotificationBell from '../components/NotificationBell';
+
+// Configurar axios con la URL base y token
+axios.defaults.baseURL = 'http://localhost:5000';
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 function Calendar() {
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
