@@ -174,6 +174,7 @@ function Dashboard() {
             <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
             <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
             <Link to="/tareas" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Tareas</Link>
+            <Link to="/reportes" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Reportes</Link>
             {user?.rol === 'administrador' && (
               <>
                 <Link to="/users" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Usuarios</Link>

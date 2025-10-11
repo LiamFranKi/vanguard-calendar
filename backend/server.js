@@ -83,6 +83,7 @@ import configRoutes from './routes/config.routes.js';
 import taskRoutes from './routes/tasks.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import calendarRoutes from './routes/calendar.routes.js';
+import reportsRoutes from './routes/reports.routes.js';
 
 // Usar rutas
 app.use('/api/auth', authRoutes);
@@ -92,6 +93,7 @@ app.use('/api/config', configRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Manejo de errores
 app.use((err, req, res, next) => {

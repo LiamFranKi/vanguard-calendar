@@ -11,6 +11,7 @@ import Tasks from './pages/Tasks';
 import Notifications from './pages/Notifications';
 import Calendar from './pages/Calendar';
 import Events from './pages/Events';
+import Reports from './pages/Reports';
 import './App.css';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
               <Route path="/notificaciones" element={<Notifications />} />
               <Route path="/calendario" element={<Calendar />} />
               <Route path="/eventos" element={<Events />} />
+              <Route path="/reportes" element={<Reports />} />
             </Routes>
           </div>
         </Router>
