@@ -4,11 +4,11 @@ import { verifyToken } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticación
-router.use(verifyToken);
-
-// Obtener clave pública VAPID
+// Obtener clave pública VAPID (RUTA PÚBLICA - no requiere autenticación)
 router.get('/vapid-public-key', pushController.getVapidPublicKey);
+
+// Todas las demás rutas requieren autenticación
+router.use(verifyToken);
 
 // Suscribirse a push notifications
 router.post('/subscribe', pushController.subscribe);
