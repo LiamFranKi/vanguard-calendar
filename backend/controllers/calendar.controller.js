@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { createNotification } from './notifications.controller.js';
 
 // ===== OBTENER EVENTOS DEL CALENDARIO =====
 export const getCalendarEvents = async (req, res) => {
@@ -164,13 +165,27 @@ export const createEvent = async (req, res) => {
 
     const event = eventResult.rows[0];
 
-    // Agregar asistentes
+    // Agregar asistentes y notificar
     if (attendees && attendees.length > 0) {
       for (const attendeeId of attendees) {
         await query(`
           INSERT INTO evento_asignaciones (evento_id, usuario_id, rol)
           VALUES ($1, $2, $3)
         `, [event.id, attendeeId, 'participante']);
+      }
+
+      // Notificar a los asistentes
+      try {
+        await createNotification({
+          usuario_id: attendees,
+          titulo: '🎉 Invitación a evento',
+          mensaje: `Has sido invitado al evento: "${title}"`,
+          tipo: 'info',
+          relacionado_tipo: 'evento',
+          relacionado_id: event.id
+        });
+      } catch (notifError) {
+        console.error('Error al crear notificación:', notifError);
       }
     }
 
