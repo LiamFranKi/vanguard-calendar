@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Tasks from './pages/Tasks';
 import Notifications from './pages/Notifications';
+import Calendar from './pages/Calendar';
 import './App.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/tareas" element={<Tasks />} />
               <Route path="/notificaciones" element={<Notifications />} />
+              <Route path="/calendario" element={<Calendar />} />
             </Routes>
           </div>
         </Router>

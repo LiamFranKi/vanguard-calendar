@@ -51,6 +51,36 @@ function Dashboard() {
         
         setRecentTasks(recent);
       }
+
+      // Obtener notificaciones no leídas
+      const notifResponse = await axios.get('/api/notifications?unread_only=true');
+      if (notifResponse.data.success) {
+        setStats(prev => ({
+          ...prev,
+          notificaciones: notifResponse.data.unread_count
+        }));
+      }
+
+      // Obtener eventos próximos (próximos 7 días)
+      const today = new Date().toISOString().split('T')[0];
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 7);
+      const endDate = futureDate.toISOString().split('T')[0];
+
+      const eventsResponse = await axios.get('/api/calendar/events', {
+        params: {
+          start_date: today,
+          end_date: endDate,
+          type: 'events'
+        }
+      });
+
+      if (eventsResponse.data.success) {
+        setStats(prev => ({
+          ...prev,
+          eventosProximos: eventsResponse.data.data.length
+        }));
+      }
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
     }
