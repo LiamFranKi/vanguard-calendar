@@ -65,8 +65,8 @@ export const getAllTasks = async (req, res) => {
         t.updated_at,
         p.name as project_name,
         p.color as project_color,
-        creator.nombres as creator_name,
-        creator.apellidos as creator_lastname,
+        COALESCE(creator.nombres, '') as creator_name,
+        COALESCE(creator.apellidos, '') as creator_lastname,
         COUNT(DISTINCT ta.id) as assignee_count,
         COUNT(DISTINCT tc.id) as comment_count
       FROM tareas t
@@ -75,7 +75,7 @@ export const getAllTasks = async (req, res) => {
       LEFT JOIN tarea_asignaciones ta ON t.id = ta.tarea_id
       LEFT JOIN task_comments tc ON t.id = tc.task_id
       WHERE ${whereConditions.join(' AND ')}
-      GROUP BY t.id, p.name, p.color, creator.nombres, creator.apellidos
+      GROUP BY t.id, p.name, p.color, creator.nombres, creator.apellidos, creator.avatar
       ORDER BY t.created_at DESC
     `;
 
