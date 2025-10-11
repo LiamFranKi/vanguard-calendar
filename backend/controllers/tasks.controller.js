@@ -410,8 +410,8 @@ export const updateTask = async (req, res) => {
       }
     }
 
-    // Notificar cambio de estado importante
-    if (updates.status && (updates.status === 'completada' || updates.status === 'cancelada')) {
+    // Notificar cambios importantes de estado y prioridad
+    if (updates.status || updates.priority) {
       try {
         // Obtener usuarios asignados
         const assignedUsers = await query(
@@ -424,19 +424,65 @@ export const updateTask = async (req, res) => {
           const taskInfo = await query('SELECT titulo FROM tareas WHERE id = $1', [id]);
           const taskTitle = taskInfo.rows[0]?.titulo || 'una tarea';
           
-          const statusText = updates.status === 'completada' ? 'completada ✅' : 'cancelada ❌';
-          
-          await createNotification({
-            usuario_id: userIds,
-            titulo: `🔔 Tarea ${statusText}`,
-            mensaje: `La tarea "${taskTitle}" fue ${statusText}`,
-            tipo: updates.status === 'completada' ? 'success' : 'warning',
-            relacionado_tipo: 'tarea',
-            relacionado_id: id
-          });
+          // Notificar cambio de estado
+          if (updates.status) {
+            const statusNotifications = {
+              'completada': {
+                title: '✅ Tarea completada',
+                message: `La tarea "${taskTitle}" fue completada`,
+                type: 'success'
+              },
+              'cancelada': {
+                title: '❌ Tarea cancelada',
+                message: `La tarea "${taskTitle}" fue cancelada`,
+                type: 'warning'
+              },
+              'en_progreso': {
+                title: '🔄 Tarea en progreso',
+                message: `La tarea "${taskTitle}" ahora está en progreso`,
+                type: 'info'
+              },
+              'pendiente': {
+                title: '⏳ Tarea pendiente',
+                message: `La tarea "${taskTitle}" volvió a estado pendiente`,
+                type: 'info'
+              }
+            };
+
+            const notification = statusNotifications[updates.status];
+            if (notification) {
+              await createNotification({
+                usuario_id: userIds,
+                titulo: notification.title,
+                mensaje: notification.message,
+                tipo: notification.type,
+                relacionado_tipo: 'tarea',
+                relacionado_id: id
+              });
+            }
+          }
+
+          // Notificar cambio de prioridad
+          if (updates.priority) {
+            const priorityEmojis = {
+              'urgente': '🔥',
+              'alta': '🔴',
+              'media': '🟡',
+              'baja': '⚪'
+            };
+
+            await createNotification({
+              usuario_id: userIds,
+              titulo: `${priorityEmojis[updates.priority] || '📋'} Prioridad cambiada`,
+              mensaje: `La prioridad de "${taskTitle}" cambió a: ${updates.priority.toUpperCase()}`,
+              tipo: updates.priority === 'urgente' || updates.priority === 'alta' ? 'warning' : 'info',
+              relacionado_tipo: 'tarea',
+              relacionado_id: id
+            });
+          }
         }
       } catch (notifError) {
-        console.error('Error al crear notificación de estado:', notifError);
+        console.error('Error al crear notificación:', notifError);
       }
     }
 
