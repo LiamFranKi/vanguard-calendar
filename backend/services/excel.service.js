@@ -5,10 +5,14 @@ import { query } from '../config/database.js';
  * Generar reporte Excel profesional de Tareas
  */
 export const generateTasksExcelReport = async () => {
+  // Obtener configuración del sistema
+  const configQuery = await query('SELECT nombre_proyecto FROM configuracion_sistema LIMIT 1');
+  const nombreProyecto = configQuery.rows[0]?.nombre_proyecto || 'Vanguard Calendar';
+
   const workbook = new ExcelJS.Workbook();
   
   // Metadata del archivo
-  workbook.creator = 'Vanguard Calendar';
+  workbook.creator = nombreProyecto;
   workbook.created = new Date();
   workbook.modified = new Date();
 
@@ -20,7 +24,7 @@ export const generateTasksExcelReport = async () => {
   // Encabezado principal
   summarySheet.mergeCells('A1:F1');
   const titleCell = summarySheet.getCell('A1');
-  titleCell.value = '🎯 VANGUARD CALENDAR - REPORTE DE TAREAS';
+  titleCell.value = `🎯 ${nombreProyecto.toUpperCase()} - REPORTE DE TAREAS`;
   titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
   titleCell.fill = {
     type: 'pattern',
@@ -441,9 +445,13 @@ export const generateTasksExcelReport = async () => {
  * Generar reporte Excel profesional de Eventos
  */
 export const generateEventsExcelReport = async () => {
+  // Obtener configuración del sistema
+  const configQuery = await query('SELECT nombre_proyecto FROM configuracion_sistema LIMIT 1');
+  const nombreProyecto = configQuery.rows[0]?.nombre_proyecto || 'Vanguard Calendar';
+
   const workbook = new ExcelJS.Workbook();
   
-  workbook.creator = 'Vanguard Calendar';
+  workbook.creator = nombreProyecto;
   workbook.created = new Date();
 
   const eventsSheet = workbook.addWorksheet('Eventos', {
@@ -453,7 +461,7 @@ export const generateEventsExcelReport = async () => {
   // Encabezado
   eventsSheet.mergeCells('A1:H1');
   const titleCell = eventsSheet.getCell('A1');
-  titleCell.value = '🎉 VANGUARD CALENDAR - REPORTE DE EVENTOS';
+  titleCell.value = `🎉 ${nombreProyecto.toUpperCase()} - REPORTE DE EVENTOS`;
   titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
   titleCell.fill = {
     type: 'pattern',
