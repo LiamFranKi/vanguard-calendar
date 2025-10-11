@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
+import NotificationBell from '../components/NotificationBell';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
