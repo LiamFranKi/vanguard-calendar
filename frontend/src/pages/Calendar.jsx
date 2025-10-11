@@ -239,6 +239,18 @@ function Calendar() {
     navigate(`/tareas?openTask=${taskId}`);
   };
 
+  const toggleAttendee = (userId) => {
+    setEventFormData(prev => {
+      const isAssigned = prev.attendees.includes(userId);
+      return {
+        ...prev,
+        attendees: isAssigned 
+          ? prev.attendees.filter(id => id !== userId)
+          : [...prev.attendees, userId]
+      };
+    });
+  };
+
   // Mostrar loading mientras se verifica la autenticación
   if (authLoading) {
     return (
@@ -933,37 +945,75 @@ function Calendar() {
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
-                  Asistentes
+                  👥 Asistentes
                 </label>
-                <select
-                  multiple
-                  value={eventFormData.attendees}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-                    setEventFormData({ ...eventFormData, attendees: selected });
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '2px solid #e5e7eb',
-                    fontSize: '1rem',
-                    minHeight: '120px'
-                  }}
-                >
+                <div style={{
+                  maxHeight: '200px',
+                  overflow: 'auto',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '0.5rem'
+                }}>
                   {users && users.length > 0 ? (
                     users.map(u => (
-                      <option key={u.id} value={u.id}>
-                        {u.nombres} {u.apellidos} ({u.rol})
-                      </option>
+                      <label
+                        key={u.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          padding: '0.5rem',
+                          cursor: 'pointer',
+                          borderRadius: '6px',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={eventFormData.attendees.includes(u.id)}
+                          onChange={() => toggleAttendee(u.id)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        {u.avatar ? (
+                          <img 
+                            src={`http://localhost:5000${u.avatar}`}
+                            alt={u.nombres}
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: '#e5e7eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            👤
+                          </div>
+                        )}
+                        <span style={{ fontWeight: '500' }}>
+                          {u.nombres} {u.apellidos}
+                          <span style={{ color: '#6b7280', fontSize: '0.875rem', marginLeft: '0.5rem' }}>
+                            ({u.rol})
+                          </span>
+                        </span>
+                      </label>
                     ))
                   ) : (
-                    <option disabled>Cargando usuarios...</option>
+                    <p style={{ margin: 0, padding: '0.5rem', color: '#6b7280', textAlign: 'center' }}>
+                      Cargando usuarios...
+                    </p>
                   )}
-                </select>
-                <small style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                  Mantén Ctrl/Cmd para seleccionar múltiples usuarios
-                </small>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
