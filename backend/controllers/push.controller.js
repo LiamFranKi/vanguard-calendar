@@ -207,6 +207,8 @@ export const getUserSubscriptions = async (req, res) => {
  */
 export const sendPushToUser = async (userId, payload) => {
   try {
+    console.log(`🔔 Enviando push a usuario ${userId}`);
+    
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
       console.warn('⚠️ VAPID keys no configuradas. No se puede enviar push.');
       return { success: false, sent: 0 };
@@ -220,6 +222,7 @@ export const sendPushToUser = async (userId, payload) => {
     `;
     
     const result = await query(selectQuery, [userId]);
+    console.log(`📊 Suscripciones encontradas para usuario ${userId}: ${result.rows.length}`);
 
     if (result.rows.length === 0) {
       console.log(`ℹ️ No hay suscripciones para usuario ${userId}`);
@@ -232,6 +235,8 @@ export const sendPushToUser = async (userId, payload) => {
     // Enviar notificación a cada suscripción
     for (const sub of result.rows) {
       try {
+        console.log(`📤 Enviando a suscripción ${sub.id}: ${sub.endpoint.substring(0, 50)}...`);
+        
         const pushSubscription = {
           endpoint: sub.endpoint,
           keys: {
@@ -253,6 +258,7 @@ export const sendPushToUser = async (userId, payload) => {
         console.log(`✅ Push enviado exitosamente a suscripción ${sub.id}`);
       } catch (error) {
         console.error(`❌ Error al enviar push a suscripción ${sub.id}:`, error.message);
+        console.error('❌ Detalles del error:', error);
         
         // Si la suscripción expiró o es inválida (410 Gone), eliminarla
         if (error.statusCode === 410 || error.statusCode === 404) {
@@ -310,6 +316,7 @@ export const sendPushToUsers = async (userIds, payload) => {
 export const sendTestPush = async (req, res) => {
   try {
     const userId = req.userId;
+    console.log(`🧪 Enviando notificación de prueba para usuario ${userId}`);
 
     const payload = {
       title: '🎉 Prueba de Push Notification',
@@ -324,7 +331,9 @@ export const sendTestPush = async (req, res) => {
       }
     };
 
+    console.log('📤 Payload de notificación:', payload);
     const result = await sendPushToUser(userId, payload);
+    console.log('📊 Resultado del envío:', result);
 
     if (result.sent > 0) {
       res.json({
