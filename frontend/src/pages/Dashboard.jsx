@@ -62,10 +62,10 @@ function Dashboard() {
         }));
       }
 
-      // Obtener eventos próximos (próximos 7 días)
+      // Obtener eventos próximos (próximos 30 días)
       const today = new Date().toISOString().split('T')[0];
       const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 7);
+      futureDate.setDate(futureDate.getDate() + 30);
       const endDate = futureDate.toISOString().split('T')[0];
 
       const eventsResponse = await axios.get('/api/calendar/events', {
@@ -83,8 +83,8 @@ function Dashboard() {
           eventosProximos: events.length
         }));
         
-        // Últimos 3 eventos próximos
-        setUpcomingEvents(events.slice(0, 3));
+        // Solo los 2 primeros eventos próximos (ordenados por fecha)
+        setUpcomingEvents(events.slice(0, 2));
       }
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
