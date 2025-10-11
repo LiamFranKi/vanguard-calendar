@@ -244,8 +244,10 @@ export const updateEvent = async (req, res) => {
 
     // Actualizar evento
     if (updateFields.length > 0) {
-      paramCount++;
+      // Agregar updated_at (sin parámetro)
       updateFields.push(`updated_at = NOW()`);
+      
+      // Agregar el ID como último parámetro
       paramCount++;
       updateValues.push(id);
 
