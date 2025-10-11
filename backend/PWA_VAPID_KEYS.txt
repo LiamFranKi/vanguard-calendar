@@ -1,0 +1,26 @@
+=====================================================
+🔐 CLAVES VAPID PARA PUSH NOTIFICATIONS (PWA)
+=====================================================
+
+⚠️ IMPORTANTE: Debes agregar estas claves a tu archivo .env
+
+Copia y pega estas líneas en tu archivo backend/.env:
+
+=====================================================
+
+# PWA - Push Notifications (VAPID Keys)
+VAPID_PUBLIC_KEY=BPLdYypsRHQ4FNcldgRlXZRVui5ivS3Jjh1CaVzNpFerW3YZv2Lq1pmdSRVwYCnl6WaZQj6M_-Z0t8bjsAfI1yI
+VAPID_PRIVATE_KEY=U8-7v2Dyskza0X_1CY7K-jWVibwHCCGtFFzqM1e1zbc
+
+=====================================================
+
+📝 NOTAS:
+
+1. Estas claves son únicas para este proyecto
+2. NO las compartas públicamente ni las subas a Git
+3. Si necesitas regenerarlas: npx web-push generate-vapid-keys
+4. Las claves deben estar en el .env para que funcionen las notificaciones push
+5. Sin estas claves, las push notifications NO funcionarán
+
+=====================================================
+

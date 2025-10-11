@@ -1,0 +1,43 @@
+📱 INSTRUCCIONES PARA GENERAR ICONOS PWA
+==========================================
+
+OPCIÓN 1: USAR HERRAMIENTA ONLINE (RECOMENDADO)
+-----------------------------------------------
+1. Ve a: https://realfavicongenerator.net/
+2. Sube el logo de tu sistema (preferiblemente 512x512 PNG)
+3. Configura las opciones para PWA
+4. Descarga el paquete de iconos
+5. Reemplaza los archivos en esta carpeta (frontend/public/)
+
+OPCIÓN 2: USAR HERRAMIENTA LOCAL
+---------------------------------
+Si tienes ImageMagick instalado, ejecuta desde esta carpeta:
+
+magick icon.svg -resize 72x72 icon-72x72.png
+magick icon.svg -resize 96x96 icon-96x96.png
+magick icon.svg -resize 128x128 icon-128x128.png
+magick icon.svg -resize 144x144 icon-144x144.png
+magick icon.svg -resize 152x152 icon-152x152.png
+magick icon.svg -resize 192x192 icon-192x192.png
+magick icon.svg -resize 384x384 icon-384x384.png
+magick icon.svg -resize 512x512 icon-512x512.png
+
+OPCIÓN 3: USAR PWA ASSET GENERATOR
+----------------------------------
+npm install -g pwa-asset-generator
+pwa-asset-generator icon.svg ./icons --icon-only --favicon --type png
+
+ARCHIVOS NECESARIOS:
+-------------------
+✅ icon-72x72.png
+✅ icon-96x96.png
+✅ icon-128x128.png
+✅ icon-144x144.png
+✅ icon-152x152.png
+✅ icon-192x192.png
+✅ icon-384x384.png
+✅ icon-512x512.png
+
+NOTA: Por ahora, el sistema usará el icon.svg como fallback.
+Para producción, genera los PNG reales para mejor rendimiento.
+

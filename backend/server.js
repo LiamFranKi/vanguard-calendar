@@ -89,6 +89,7 @@ import notificationRoutes from './routes/notifications.routes.js';
 import calendarRoutes from './routes/calendar.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import attachmentRoutes from './routes/attachments.routes.js';
+import pushRoutes from './routes/push.routes.js';
 
 // Usar rutas
 app.use('/api/auth', authRoutes);
@@ -100,6 +101,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/attachments', attachmentRoutes);
+app.use('/api/push', pushRoutes);
 
 // Manejo de errores
 app.use((err, req, res, next) => {

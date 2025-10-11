@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { sendBulkNotificationEmails } from '../services/email.service.js';
+import { sendPushToUser } from './push.controller.js';
 
 // ===== OBTENER NOTIFICACIONES DEL USUARIO =====
 
@@ -118,7 +119,8 @@ export const createNotification = async ({
   tipo = 'info',
   relacionado_tipo = null,
   relacionado_id = null,
-  send_email = true // Por defecto envía email
+  send_email = true, // Por defecto envía email
+  send_push = true    // Por defecto envía push notification
 }) => {
   try {
     // Si es un array de usuarios, crear notificación para cada uno
@@ -150,6 +152,46 @@ export const createNotification = async ({
         console.error('⚠️ Error al enviar emails (notificación creada exitosamente):', emailError.message);
         // No fallar si el email falla, la notificación ya se creó
       }
+    }
+
+    // Enviar push notifications si está habilitado
+    if (send_push) {
+      // Ejecutar en segundo plano para no bloquear
+      setImmediate(async () => {
+        try {
+          // Construir la URL de destino según el tipo de notificación
+          let url = '/dashboard';
+          if (relacionado_tipo === 'tarea') {
+            url = `/tareas?id=${relacionado_id}`;
+          } else if (relacionado_tipo === 'evento') {
+            url = `/calendario?id=${relacionado_id}`;
+          }
+
+          const pushPayload = {
+            title: titulo,
+            body: mensaje,
+            icon: '/icon-192x192.png',
+            badge: '/icon-96x96.png',
+            tag: relacionado_id ? `${relacionado_tipo}-${relacionado_id}` : `notification-${Date.now()}`,
+            requireInteraction: tipo === 'importante',
+            data: {
+              url,
+              relacionado_tipo,
+              relacionado_id,
+              tipo
+            }
+          };
+
+          for (const userId of userIds) {
+            await sendPushToUser(userId, pushPayload);
+          }
+
+          console.log(`✅ Push notifications enviadas a ${userIds.length} usuario(s)`);
+        } catch (pushError) {
+          console.error('⚠️ Error al enviar push notifications (notificación creada exitosamente):', pushError.message);
+          // No fallar si el push falla, la notificación ya se creó
+        }
+      });
     }
 
     return true;

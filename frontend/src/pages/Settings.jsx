@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import NotificationBell from '../components/NotificationBell';
+import PushNotificationManager from '../components/PushNotificationManager';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
@@ -657,6 +658,11 @@ function Settings() {
               </Link>
             </div>
           </form>
+
+          {/* Sección de Push Notifications */}
+          <div style={{ marginTop: '2rem' }}>
+            <PushNotificationManager />
+          </div>
         </div>
       </main>
     </div>
