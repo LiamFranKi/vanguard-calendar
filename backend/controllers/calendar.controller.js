@@ -216,16 +216,22 @@ export const updateEvent = async (req, res) => {
     const updateValues = [];
     let paramCount = 0;
 
-    const allowedFields = [
-      'titulo', 'descripcion', 'fecha_inicio', 'fecha_fin',
-      'ubicacion', 'color', 'todo_el_dia'
-    ];
+    // Mapeo de campos frontend (inglés) -> backend (español)
+    const fieldMap = {
+      'title': 'titulo',
+      'description': 'descripcion',
+      'fecha_inicio': 'fecha_inicio',
+      'fecha_fin': 'fecha_fin',
+      'ubicacion': 'ubicacion',
+      'color': 'color',
+      'todo_el_dia': 'todo_el_dia'
+    };
 
-    for (const field of allowedFields) {
-      if (updates[field] !== undefined) {
+    for (const [frontendField, backendField] of Object.entries(fieldMap)) {
+      if (updates[frontendField] !== undefined) {
         paramCount++;
-        updateFields.push(`${field} = $${paramCount}`);
-        updateValues.push(updates[field]);
+        updateFields.push(`${backendField} = $${paramCount}`);
+        updateValues.push(updates[frontendField]);
       }
     }
 
