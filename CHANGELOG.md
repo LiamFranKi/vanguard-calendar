@@ -4,6 +4,82 @@ Sistema moderno de gestión de calendario y tareas con notificaciones push y PWA
 
 ---
 
+## 🚀 [v2.1.0] - 2024-10-11 - Sistema de Email Notifications
+
+### ✨ Nuevas Funcionalidades
+
+#### **📧 Sistema Completo de Email Notifications**
+- ✅ **Nodemailer** integrado para envío de emails automáticos
+- ✅ **Templates HTML profesionales** con diseño responsive
+- ✅ **Configuración dinámica** desde base de datos (nombre, colores, logo)
+- ✅ **Integración con Gmail** usando contraseñas de aplicación
+- ✅ **Emails automáticos** para todas las acciones del sistema
+
+#### **⚡ Mejoras de Rendimiento**
+- ✅ **Notificaciones asíncronas** (setImmediate) para respuesta instantánea
+- ✅ **Crear eventos/tareas** ahora responde en **<1 segundo** (antes 8 segundos)
+- ✅ **Emails en segundo plano** sin bloquear la interfaz de usuario
+- ✅ **Mejor experiencia** de usuario con respuestas inmediatas
+
+#### **📧 Emails Automáticos Para:**
+- ✅ **Nuevas tareas asignadas** → Email a usuarios asignados
+- ✅ **Cambios de estado** (pendiente → en progreso → completada) → Email automático
+- ✅ **Cambios de prioridad** (baja → media → alta → urgente) → Email automático
+- ✅ **Nuevos comentarios** → Email a todos los usuarios asignados
+- ✅ **Nuevos eventos** → Email a todos los asistentes
+- ✅ **Recordatorios de eventos** (1 día antes y el día del evento) → Email automático
+
+### 🔧 Correcciones y Mejoras
+
+#### **Notificaciones**
+- ✅ **Restricción de tipos** arreglada para permitir recordatorios de eventos
+- ✅ **Notificaciones de comentarios** mejoradas (incluye a todos los usuarios asignados)
+- ✅ **Logo removido** de emails para evitar errores de carga con URLs locales
+- ✅ **CORS actualizado** para soportar puertos 3000 y 3001
+
+#### **Configuración**
+- ✅ **Email del sistema** configurable desde base de datos
+- ✅ **Colores dinámicos** en templates de email
+- ✅ **Nombre del proyecto** dinámico en emails
+- ✅ **Soporte completo** para Gmail SMTP con contraseñas de aplicación
+
+#### **Arquitectura**
+- ✅ **Proceso asíncrono** para envío de emails (no bloquea respuestas)
+- ✅ **Manejo de errores** robusto en envío de emails
+- ✅ **Logging detallado** para debugging
+- ✅ **Scripts de configuración** para email del sistema
+
+### 📊 Impacto en Rendimiento
+
+#### **Antes:**
+- ⏱️ Crear evento: **8 segundos** (usuario esperaba)
+- ⏱️ Crear tarea: **8 segundos** (usuario esperaba)
+- ⏱️ Cambiar estado: **8 segundos** (usuario esperaba)
+
+#### **Ahora:**
+- ⚡ Crear evento: **<1 segundo** (respuesta inmediata)
+- ⚡ Crear tarea: **<1 segundo** (respuesta inmediata)
+- ⚡ Cambiar estado: **<1 segundo** (respuesta inmediata)
+- 📧 **Emails se envían en segundo plano** sin afectar la experiencia
+
+### 🎯 Configuración de Email
+
+#### **Variables de Entorno (.env):**
+```env
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=tuCorreo@gmail.com
+EMAIL_PASS=tu_contraseña_de_aplicación
+```
+
+#### **Base de Datos:**
+- ✅ Campo `email_sistema` en `configuracion_sistema`
+- ✅ Configuración dinámica de remitente
+- ✅ Templates con datos del sistema
+
+---
+
 ## 🚀 [v2.0.0] - 2024-10-10 - Sistema de Tareas Avanzado
 
 ### ✨ Nuevas Funcionalidades
