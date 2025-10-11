@@ -10,59 +10,64 @@ export const getCalendarEvents = async (req, res) => {
 
     // Obtener tareas si se solicita
     if (type === 'all' || type === 'tasks') {
-      const tasksQuery = `
-        SELECT 
-          t.id,
-          t.titulo as title,
-          t.descripcion as description,
-          t.fecha_vencimiento as date,
-          t.prioridad as priority,
-          t.estado as status,
-          t.progreso,
-          'task' as type,
-          ARRAY_AGG(
-            CASE 
-              WHEN ta.usuario_id IS NOT NULL 
-              THEN json_build_object(
-                'id', u.id,
-                'nombres', u.nombres,
-                'apellidos', u.apellidos,
-                'avatar', u.avatar
-              )
-              ELSE NULL
-            END
-          ) FILTER (WHERE ta.usuario_id IS NOT NULL) as assignees
-        FROM tareas t
-        LEFT JOIN tarea_asignaciones ta ON t.id = ta.tarea_id
-        LEFT JOIN usuarios u ON ta.usuario_id = u.id
-        WHERE t.fecha_vencimiento IS NOT NULL
-        ${start_date ? `AND t.fecha_vencimiento >= $1` : ''}
-        ${end_date ? `AND t.fecha_vencimiento <= $${start_date ? '2' : '1'}` : ''}
-        GROUP BY t.id, t.titulo, t.descripcion, t.fecha_vencimiento, t.prioridad, t.estado, t.progreso
-        ORDER BY t.fecha_vencimiento ASC
-      `;
+      try {
+        const tasksQuery = `
+          SELECT 
+            t.id,
+            t.titulo as title,
+            t.descripcion as description,
+            t.fecha_vencimiento as date,
+            t.prioridad as priority,
+            t.estado as status,
+            t.progreso,
+            'task' as type,
+            ARRAY_AGG(
+              CASE 
+                WHEN ta.usuario_id IS NOT NULL 
+                THEN json_build_object(
+                  'id', u.id,
+                  'nombres', u.nombres,
+                  'apellidos', u.apellidos,
+                  'avatar', u.avatar
+                )
+                ELSE NULL
+              END
+            ) FILTER (WHERE ta.usuario_id IS NOT NULL) as assignees
+          FROM tareas t
+          LEFT JOIN tarea_asignaciones ta ON t.id = ta.tarea_id
+          LEFT JOIN usuarios u ON ta.usuario_id = u.id
+          WHERE t.fecha_vencimiento IS NOT NULL
+          ${start_date ? `AND t.fecha_vencimiento >= $1` : ''}
+          ${end_date ? `AND t.fecha_vencimiento <= $${start_date ? '2' : '1'}` : ''}
+          GROUP BY t.id, t.titulo, t.descripcion, t.fecha_vencimiento, t.prioridad, t.estado, t.progreso
+          ORDER BY t.fecha_vencimiento ASC
+        `;
 
-      const params = [];
-      if (start_date) params.push(start_date);
-      if (end_date) params.push(end_date);
+        const params = [];
+        if (start_date) params.push(start_date);
+        if (end_date) params.push(end_date);
 
-      const tasksResult = await query(tasksQuery, params);
-      calendarItems = [...calendarItems, ...tasksResult.rows];
+        const tasksResult = await query(tasksQuery, params);
+        calendarItems = [...calendarItems, ...tasksResult.rows];
+      } catch (taskError) {
+        console.error('Error al obtener tareas:', taskError.message);
+      }
     }
 
     // Obtener eventos si se solicita
     if (type === 'all' || type === 'events') {
-      const eventsQuery = `
-        SELECT 
-          e.id,
-          e.titulo as title,
-          e.descripcion as description,
-          e.fecha_inicio as date,
-          e.fecha_fin as end_date,
-          e.ubicacion,
-          e.color,
-          e.todo_el_dia as all_day,
-          'event' as type,
+      try {
+        const eventsQuery = `
+          SELECT 
+            e.id,
+            e.titulo as title,
+            e.descripcion as description,
+            e.fecha_inicio as date,
+            e.fecha_fin as end_date,
+            e.ubicacion,
+            e.color,
+            e.todo_el_dia as all_day,
+            'event' as type,
           ARRAY_AGG(
             CASE 
               WHEN ea.usuario_id IS NOT NULL 
@@ -76,21 +81,25 @@ export const getCalendarEvents = async (req, res) => {
             END
           ) FILTER (WHERE ea.usuario_id IS NOT NULL) as attendees
         FROM eventos e
-        LEFT JOIN evento_asistentes ea ON e.id = ea.evento_id
+        LEFT JOIN evento_asignaciones ea ON e.id = ea.evento_id
         LEFT JOIN usuarios u ON ea.usuario_id = u.id
-        WHERE 1=1
-        ${start_date ? `AND e.fecha_inicio >= $1` : ''}
-        ${end_date ? `AND e.fecha_inicio <= $${start_date ? '2' : '1'}` : ''}
-        GROUP BY e.id, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, e.ubicacion, e.color, e.todo_el_dia
-        ORDER BY e.fecha_inicio ASC
-      `;
+          WHERE 1=1
+          ${start_date ? `AND e.fecha_inicio >= $1` : ''}
+          ${end_date ? `AND e.fecha_inicio <= $${start_date ? '2' : '1'}` : ''}
+          GROUP BY e.id, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, e.ubicacion, e.color, e.todo_el_dia
+          ORDER BY e.fecha_inicio ASC
+        `;
 
-      const params = [];
-      if (start_date) params.push(start_date);
-      if (end_date) params.push(end_date);
+        const params = [];
+        if (start_date) params.push(start_date);
+        if (end_date) params.push(end_date);
 
-      const eventsResult = await query(eventsQuery, params);
-      calendarItems = [...calendarItems, ...eventsResult.rows];
+        const eventsResult = await query(eventsQuery, params);
+        calendarItems = [...calendarItems, ...eventsResult.rows];
+      } catch (eventError) {
+        console.error('⚠️ Error al obtener eventos (tabla eventos puede no existir):', eventError.message);
+        // Si la tabla no existe, simplemente continuar sin eventos
+      }
     }
 
     // Ordenar por fecha
@@ -103,7 +112,7 @@ export const getCalendarEvents = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error al obtener eventos del calendario:', error);
+    console.error('❌ Error al obtener eventos del calendario:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener eventos del calendario',
@@ -159,9 +168,9 @@ export const createEvent = async (req, res) => {
     if (attendees && attendees.length > 0) {
       for (const attendeeId of attendees) {
         await query(`
-          INSERT INTO evento_asistentes (evento_id, usuario_id, estado)
+          INSERT INTO evento_asignaciones (evento_id, usuario_id, rol)
           VALUES ($1, $2, $3)
-        `, [event.id, attendeeId, 'pendiente']);
+        `, [event.id, attendeeId, 'participante']);
       }
     }
 
@@ -238,14 +247,14 @@ export const updateEvent = async (req, res) => {
 
     // Actualizar asistentes si se enviaron
     if (attendees !== undefined && Array.isArray(attendees)) {
-      await query('DELETE FROM evento_asistentes WHERE evento_id = $1', [id]);
+      await query('DELETE FROM evento_asignaciones WHERE evento_id = $1', [id]);
 
       if (attendees.length > 0) {
         for (const attendeeId of attendees) {
           await query(`
-            INSERT INTO evento_asistentes (evento_id, usuario_id, estado)
+            INSERT INTO evento_asignaciones (evento_id, usuario_id, rol)
             VALUES ($1, $2, $3)
-          `, [id, attendeeId, 'pendiente']);
+          `, [id, attendeeId, 'participante']);
         }
       }
     }
@@ -272,7 +281,7 @@ export const deleteEvent = async (req, res) => {
     const { id } = req.params;
 
     // Eliminar asistentes primero
-    await query('DELETE FROM evento_asistentes WHERE evento_id = $1', [id]);
+    await query('DELETE FROM evento_asignaciones WHERE evento_id = $1', [id]);
 
     // Eliminar evento
     const result = await query('DELETE FROM eventos WHERE id = $1 RETURNING id', [id]);
@@ -315,13 +324,13 @@ export const getEventById = async (req, res) => {
               'nombres', u.nombres,
               'apellidos', u.apellidos,
               'avatar', u.avatar,
-              'estado', ea.estado
+              'rol', ea.rol
             )
             ELSE NULL
           END
         ) FILTER (WHERE ea.usuario_id IS NOT NULL) as attendees
       FROM eventos e
-      LEFT JOIN evento_asistentes ea ON e.id = ea.evento_id
+      LEFT JOIN evento_asignaciones ea ON e.id = ea.evento_id
       LEFT JOIN usuarios u ON ea.usuario_id = u.id
       WHERE e.id = $1
       GROUP BY e.id
