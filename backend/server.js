@@ -111,11 +111,17 @@ app.use((req, res) => {
   });
 });
 
+// Importar sistema de recordatorios
+import { startReminderJobs } from './jobs/reminders.job.js';
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   console.log(`📝 Entorno: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 URL: http://localhost:${PORT}`);
+  
+  // Iniciar sistema de recordatorios automáticos
+  startReminderJobs();
 });
 
 export default app;
