@@ -220,6 +220,10 @@ function NotificationBell() {
                   key={notif.id}
                   onClick={() => {
                     if (!notif.leida) handleMarkAsRead(notif.id);
+                    // Redirigir según el tipo de notificación
+                    if (notif.relacionado_tipo === 'tarea' && notif.relacionado_id) {
+                      window.location.href = `/tareas?openTask=${notif.relacionado_id}`;
+                    }
                   }}
                   style={{
                     padding: '1rem',

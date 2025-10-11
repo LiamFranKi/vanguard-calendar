@@ -51,6 +51,15 @@ function Tasks() {
       fetchTasks();
       fetchProjects();
       fetchUsers();
+      
+      // Abrir tarea desde notificación
+      const urlParams = new URLSearchParams(window.location.search);
+      const openTaskId = urlParams.get('openTask');
+      if (openTaskId) {
+        setTimeout(() => {
+          openDetailModalById(parseInt(openTaskId));
+        }, 500);
+      }
     }
   }, [isAuthenticated, navigate, authLoading]);
 
@@ -260,6 +269,19 @@ function Tasks() {
     } catch (error) {
       console.error('Error al obtener detalle:', error);
       Swal.fire('Error', 'Error al cargar los detalles', 'error');
+    }
+  };
+
+  const openDetailModalById = async (taskId) => {
+    try {
+      const response = await axios.get(`/api/tasks/${taskId}`);
+      if (response.data.success) {
+        setSelectedTask(response.data.data);
+        setShowDetailModal(true);
+      }
+    } catch (error) {
+      console.error('Error al obtener detalle:', error);
+      Swal.fire('Error', 'Tarea no encontrada', 'error');
     }
   };
 

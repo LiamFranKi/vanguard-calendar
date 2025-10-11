@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Tasks from './pages/Tasks';
+import Notifications from './pages/Notifications';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/tareas" element={<Tasks />} />
+              <Route path="/notificaciones" element={<Notifications />} />
             </Routes>
           </div>
         </Router>
