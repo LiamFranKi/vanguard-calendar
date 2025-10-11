@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
+import NotificationBell from '../components/NotificationBell';
 import axios from 'axios';
 
 function Dashboard() {
@@ -145,6 +146,9 @@ function Dashboard() {
               </>
             )}
             <Link to="/profile" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Mi Perfil</Link>
+            
+            {/* Campana de notificaciones */}
+            <NotificationBell />
             
               <button 
                 onClick={handleLogout} 

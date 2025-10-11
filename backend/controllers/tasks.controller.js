@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { createNotification } from './notifications.controller.js';
 
 // ===== CONTROLADOR SIMPLIFICADO DE TAREAS =====
 // Adaptado para usar la estructura de BD en español
@@ -252,6 +253,16 @@ export const createTask = async (req, res) => {
           VALUES ($1, $2, $3)
         `, [task.id, assigneeId, 'asignado']);
       }
+
+      // Notificar a los usuarios asignados
+      await createNotification({
+        usuario_id: assignees,
+        titulo: '📋 Nueva tarea asignada',
+        mensaje: `Has sido asignado a la tarea: "${title}"`,
+        tipo: 'info',
+        relacionado_tipo: 'tarea',
+        relacionado_id: task.id
+      });
     }
 
     // Registrar en historial
@@ -355,6 +366,13 @@ export const updateTask = async (req, res) => {
       console.log('👥 Nuevos asignados:', assignees);
       
       try {
+        // Obtener asignados anteriores para comparar
+        const previousAssignees = await query(
+          'SELECT usuario_id FROM tarea_asignaciones WHERE tarea_id = $1',
+          [id]
+        );
+        const previousIds = previousAssignees.rows.map(a => a.usuario_id);
+
         // Eliminar asignaciones actuales
         await query('DELETE FROM tarea_asignaciones WHERE tarea_id = $1', [id]);
         console.log('🗑️ Asignaciones anteriores eliminadas');
@@ -369,10 +387,56 @@ export const updateTask = async (req, res) => {
             `, [id, assigneeId, 'asignado']);
           }
           console.log('✅ Todas las asignaciones guardadas');
+
+          // Notificar a NUEVOS usuarios asignados (que no estaban antes)
+          const newAssignees = assignees.filter(aid => !previousIds.includes(aid));
+          if (newAssignees.length > 0) {
+            const taskInfo = await query('SELECT titulo FROM tareas WHERE id = $1', [id]);
+            const taskTitle = taskInfo.rows[0]?.titulo || 'una tarea';
+            
+            await createNotification({
+              usuario_id: newAssignees,
+              titulo: '📋 Asignado a tarea',
+              mensaje: `Has sido asignado a: "${taskTitle}"`,
+              tipo: 'info',
+              relacionado_tipo: 'tarea',
+              relacionado_id: id
+            });
+          }
         }
       } catch (assignError) {
         console.error('❌ Error al asignar usuarios:', assignError);
-        throw assignError; // Re-lanzar para que se capture en el catch principal
+        throw assignError;
+      }
+    }
+
+    // Notificar cambio de estado importante
+    if (updates.status && (updates.status === 'completada' || updates.status === 'cancelada')) {
+      try {
+        // Obtener usuarios asignados
+        const assignedUsers = await query(
+          'SELECT usuario_id FROM tarea_asignaciones WHERE tarea_id = $1',
+          [id]
+        );
+        const userIds = assignedUsers.rows.map(a => a.usuario_id).filter(uid => uid !== userId);
+        
+        if (userIds.length > 0) {
+          const taskInfo = await query('SELECT titulo FROM tareas WHERE id = $1', [id]);
+          const taskTitle = taskInfo.rows[0]?.titulo || 'una tarea';
+          
+          const statusText = updates.status === 'completada' ? 'completada ✅' : 'cancelada ❌';
+          
+          await createNotification({
+            usuario_id: userIds,
+            titulo: `🔔 Tarea ${statusText}`,
+            mensaje: `La tarea "${taskTitle}" fue ${statusText}`,
+            tipo: updates.status === 'completada' ? 'success' : 'warning',
+            relacionado_tipo: 'tarea',
+            relacionado_id: id
+          });
+        }
+      } catch (notifError) {
+        console.error('Error al crear notificación de estado:', notifError);
       }
     }
 
@@ -534,6 +598,32 @@ export const addComment = async (req, res) => {
     `, [taskId, userId, 'commented', { 
       content: content.substring(0, 100) 
     }]);
+
+    // Notificar a usuarios asignados (excepto quien comentó)
+    try {
+      const assignedUsers = await query(
+        'SELECT usuario_id FROM tarea_asignaciones WHERE tarea_id = $1',
+        [taskId]
+      );
+      const userIds = assignedUsers.rows.map(a => a.usuario_id).filter(uid => uid !== userId);
+      
+      if (userIds.length > 0) {
+        const taskInfo = await query('SELECT titulo FROM tareas WHERE id = $1', [taskId]);
+        const taskTitle = taskInfo.rows[0]?.titulo || 'una tarea';
+        const userName = commentWithUser.user.nombres + ' ' + commentWithUser.user.apellidos;
+        
+        await createNotification({
+          usuario_id: userIds,
+          titulo: '💬 Nuevo comentario',
+          mensaje: `${userName} comentó en: "${taskTitle}"`,
+          tipo: 'info',
+          relacionado_tipo: 'tarea',
+          relacionado_id: taskId
+        });
+      }
+    } catch (notifError) {
+      console.error('Error al crear notificación de comentario:', notifError);
+    }
 
     res.status(201).json({
       success: true,
