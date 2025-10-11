@@ -4,7 +4,9 @@ import { query } from '../config/database.js';
 // Configurar web-push con las claves VAPID
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-const VAPID_EMAIL = process.env.EMAIL_USER || 'mailto:admin@vanguardcalendar.com';
+const VAPID_EMAIL = process.env.EMAIL_USER 
+  ? (process.env.EMAIL_USER.startsWith('mailto:') ? process.env.EMAIL_USER : `mailto:${process.env.EMAIL_USER}`)
+  : 'mailto:admin@vanguardcalendar.com';
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
