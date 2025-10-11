@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useAuth } from '../contexts/AuthContext';
 import {
   isPushNotificationSupported,
   requestNotificationPermission,
@@ -11,6 +12,7 @@ import {
 } from '../utils/pwa';
 
 const PushNotificationManager = () => {
+  const { token } = useAuth();
   const [isSupported, setIsSupported] = useState(false);
   const [permission, setPermission] = useState('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -78,7 +80,7 @@ const PushNotificationManager = () => {
         { subscription },
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         }
       );
@@ -138,7 +140,7 @@ const PushNotificationManager = () => {
             { endpoint: subscription.endpoint },
             {
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${token}`
               }
             }
           );
@@ -174,7 +176,7 @@ const PushNotificationManager = () => {
         {},
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         }
       );
