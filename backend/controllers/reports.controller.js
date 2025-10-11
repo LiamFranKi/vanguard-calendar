@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { generateTasksExcelReport, generateEventsExcelReport } from '../services/excel.service.js';
 
 // ===== OBTENER ESTADÍSTICAS GENERALES =====
 export const getGeneralStats = async (req, res) => {
@@ -393,7 +394,41 @@ export const getActivityTimeline = async (req, res) => {
   }
 };
 
-// ===== EXPORTAR REPORTE A CSV =====
+// ===== EXPORTAR REPORTE A EXCEL (PROFESIONAL) =====
+export const exportToExcel = async (req, res) => {
+  try {
+    const { type = 'tasks' } = req.query;
+
+    let workbook;
+    let filename;
+
+    if (type === 'tasks') {
+      workbook = await generateTasksExcelReport();
+      filename = `Reporte_Tareas_${new Date().toISOString().split('T')[0]}.xlsx`;
+    } else if (type === 'events') {
+      workbook = await generateEventsExcelReport();
+      filename = `Reporte_Eventos_${new Date().toISOString().split('T')[0]}.xlsx`;
+    }
+
+    // Configurar headers
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Escribir el archivo
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error('Error al exportar Excel:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al exportar Excel',
+      error: error.message
+    });
+  }
+};
+
+// ===== EXPORTAR REPORTE A CSV (SIMPLE) =====
 export const exportToCSV = async (req, res) => {
   try {
     const { type = 'tasks', start_date, end_date } = req.query;

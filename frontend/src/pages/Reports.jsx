@@ -75,19 +75,25 @@ function Reports() {
 
   const handleExport = async (type) => {
     try {
-      const response = await axios.get(`/api/reports/export/csv?type=${type}`, {
+      const response = await axios.get(`/api/reports/export/excel?type=${type}`, {
         responseType: 'blob'
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `reporte_${type}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `Reporte_${type === 'tasks' ? 'Tareas' : 'Eventos'}_${new Date().toISOString().split('T')[0]}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
 
-      Swal.fire('¡Descargado!', 'Reporte exportado exitosamente', 'success');
+      Swal.fire({
+        icon: 'success',
+        title: '¡Descargado!',
+        text: 'Reporte Excel generado exitosamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (error) {
       console.error('Error al exportar:', error);
       Swal.fire('Error', 'Error al exportar reporte', 'error');

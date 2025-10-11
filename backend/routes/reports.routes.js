@@ -5,7 +5,8 @@ import {
   getEventsReport,
   getUserProductivity,
   getActivityTimeline,
-  exportToCSV
+  exportToCSV,
+  exportToExcel
 } from '../controllers/reports.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
@@ -33,6 +34,9 @@ router.get('/timeline', getActivityTimeline);
 
 // Exportar a CSV
 router.get('/export/csv', exportToCSV);
+
+// Exportar a Excel (profesional)
+router.get('/export/excel', exportToExcel);
 
 export default router;
 
