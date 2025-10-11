@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { createNotification } from './notifications.controller.js';
+import { deleteTaskAttachments } from './attachments.controller.js';
 
 // ===== CONTROLADOR SIMPLIFICADO DE TAREAS =====
 // Adaptado para usar la estructura de BD en español
@@ -541,6 +542,9 @@ export const updateTask = async (req, res) => {
 export const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Eliminar adjuntos de la tarea (archivos del servidor y registros de BD)
+    await deleteTaskAttachments(id);
 
     const result = await query('DELETE FROM tareas WHERE id = $1 RETURNING id', [id]);
     

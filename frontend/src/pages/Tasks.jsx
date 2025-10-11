@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import { useNavigate, Link } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
+import AttachmentsSection from '../components/AttachmentsSection';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
@@ -1928,6 +1929,12 @@ function TaskDetailModal({
             </div>
           )}
         </div>
+
+        {/* Sección de adjuntos */}
+        <AttachmentsSection 
+          taskId={task.id} 
+          assignedUsers={task.assignees || []} 
+        />
 
         {/* Sección de comentarios funcional */}
         <div style={{ marginTop: '1.5rem', borderTop: '2px solid #e5e7eb', paddingTop: '1.5rem' }}>
