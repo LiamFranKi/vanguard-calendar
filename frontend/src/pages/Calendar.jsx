@@ -81,10 +81,11 @@ function Calendar() {
     try {
       const response = await axios.get('/api/users');
       if (response.data.success) {
-        setUsers(response.data.data);
+        setUsers(response.data.data || []);
       }
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
+      setUsers([]); // Asegurar que sea array vacío en caso de error
     }
   };
 
@@ -950,11 +951,15 @@ function Calendar() {
                     minHeight: '120px'
                   }}
                 >
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.nombres} {u.apellidos} ({u.rol})
-                    </option>
-                  ))}
+                  {users && users.length > 0 ? (
+                    users.map(u => (
+                      <option key={u.id} value={u.id}>
+                        {u.nombres} {u.apellidos} ({u.rol})
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Cargando usuarios...</option>
+                  )}
                 </select>
                 <small style={{ color: '#6b7280', fontSize: '0.85rem' }}>
                   Mantén Ctrl/Cmd para seleccionar múltiples usuarios
