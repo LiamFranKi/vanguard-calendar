@@ -81,7 +81,7 @@ function Calendar() {
     try {
       const response = await axios.get('/api/users');
       if (response.data.success) {
-        setUsers(response.data.data || []);
+        setUsers(response.data.users || []);
       }
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
