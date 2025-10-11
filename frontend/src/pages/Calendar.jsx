@@ -424,6 +424,7 @@ function Calendar() {
 
               {/* Botón crear evento */}
               <button
+                type="button"
                 onClick={() => openCreateEventModal()}
                 style={{
                   padding: '0.75rem 1.5rem',
@@ -596,6 +597,7 @@ function Calendar() {
               </div>
 
               <button
+                type="button"
                 onClick={() => openCreateEventModal(selectedDate)}
                 style={{
                   width: '100%',
