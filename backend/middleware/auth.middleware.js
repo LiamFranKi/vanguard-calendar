@@ -26,7 +26,11 @@ export const verifyToken = (req, res, next) => {
 
 export const requireRole = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.userRol)) {
+    // Comparación case-insensitive
+    const userRolLower = req.userRol ? req.userRol.toLowerCase() : '';
+    const rolesLower = roles.map(r => r.toLowerCase());
+    
+    if (!rolesLower.includes(userRolLower)) {
       return res.status(403).json({
         success: false,
         message: 'No tienes permisos para realizar esta acción'
