@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { sendBulkNotificationEmails } from '../services/email.service.js';
 
 // ===== OBTENER NOTIFICACIONES DEL USUARIO =====
 
@@ -116,7 +117,8 @@ export const createNotification = async ({
   mensaje,
   tipo = 'info',
   relacionado_tipo = null,
-  relacionado_id = null
+  relacionado_id = null,
+  send_email = true // Por defecto envía email
 }) => {
   try {
     // Si es un array de usuarios, crear notificación para cada uno
@@ -132,6 +134,24 @@ export const createNotification = async ({
     }
 
     console.log(`✅ Notificación creada para ${userIds.length} usuario(s)`);
+
+    // Enviar emails si está habilitado
+    if (send_email) {
+      try {
+        await sendBulkNotificationEmails(
+          userIds,
+          titulo,
+          mensaje,
+          tipo,
+          relacionado_tipo,
+          relacionado_id
+        );
+      } catch (emailError) {
+        console.error('⚠️ Error al enviar emails (notificación creada exitosamente):', emailError.message);
+        // No fallar si el email falla, la notificación ya se creó
+      }
+    }
+
     return true;
   } catch (error) {
     console.error('❌ Error al crear notificación:', error);
