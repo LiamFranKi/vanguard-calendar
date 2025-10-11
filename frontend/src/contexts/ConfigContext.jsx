@@ -24,10 +24,18 @@ export const ConfigProvider = ({ children }) => {
     direccion_sistema: ''
   });
   const [loading, setLoading] = useState(true);
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   const fetchConfig = async () => {
+    // Evitar llamadas duplicadas
+    if (configLoaded) {
+      console.log('⏭️ Configuración ya cargada, omitiendo...');
+      return;
+    }
+
     try {
       console.log('🔄 Cargando configuración...');
+      setConfigLoaded(true);
       
       // Crear instancia de axios sin headers de autorización para llamadas públicas
       const publicAxios = axios.create();
@@ -78,6 +86,11 @@ export const ConfigProvider = ({ children }) => {
         message: error.response?.data?.message || 'Error al actualizar configuración' 
       };
     }
+  };
+
+  const forceReloadConfig = async () => {
+    setConfigLoaded(false);
+    await fetchConfig();
   };
 
   const uploadLogo = async (file) => {
@@ -144,6 +157,7 @@ export const ConfigProvider = ({ children }) => {
     config,
     loading,
     fetchConfig,
+    forceReloadConfig,
     updateConfig,
     uploadLogo,
     uploadFavicon
