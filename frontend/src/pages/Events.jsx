@@ -251,20 +251,22 @@ function Events() {
           )}
           {/* Iconos de acción agrupados */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
-            <a 
-              href="/profile" 
+            <button 
+              onClick={() => navigate('/profile')}
               style={{ 
+                background: 'none',
+                border: 'none',
                 fontSize: '1.5rem',
-                textDecoration: 'none',
                 cursor: 'pointer',
-                transition: 'transform 0.2s'
+                transition: 'transform 0.2s',
+                padding: 0
               }}
               onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
               onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
               title="Mi Perfil"
             >
               👤
-            </a>
+            </button>
             
             <NotificationBell />
 
@@ -282,7 +284,7 @@ function Events() {
               onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
               title="Cerrar Sesión"
             >
-              ⎋
+              🚀
             </button>
           </div>
         </div>
