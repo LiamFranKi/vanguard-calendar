@@ -550,8 +550,8 @@ function Calendar() {
                                 fontSize: '0.65rem',
                                 padding: '2px 4px',
                                 borderRadius: '4px',
-                                background: event.type === 'task' ? '#dbeafe' : '#dcfce7',
-                                color: event.type === 'task' ? '#1e40af' : '#166534',
+                                background: event.type === 'task' ? '#dbeafe' : (event.color ? `${event.color}30` : '#dcfce7'),
+                                color: event.type === 'task' ? '#1e40af' : (event.color || '#166534'),
                                 fontWeight: '600',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -643,8 +643,8 @@ function Calendar() {
                     <div
                       key={`${event.type}-${event.id}`}
                       style={{
-                        background: event.type === 'task' ? '#eff6ff' : '#f0fdf4',
-                        borderLeft: `4px solid ${event.type === 'task' ? '#3b82f6' : '#22c55e'}`,
+                        background: event.type === 'task' ? '#eff6ff' : (event.color ? `${event.color}15` : '#f0fdf4'),
+                        borderLeft: `4px solid ${event.type === 'task' ? '#3b82f6' : (event.color || '#22c55e')}`,
                         borderRadius: '8px',
                         padding: '1rem',
                         cursor: event.type === 'event' ? 'pointer' : 'default'

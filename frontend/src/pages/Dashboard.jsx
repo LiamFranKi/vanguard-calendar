@@ -17,6 +17,7 @@ function Dashboard() {
     notificaciones: 0
   });
   const [recentTasks, setRecentTasks] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -76,10 +77,14 @@ function Dashboard() {
       });
 
       if (eventsResponse.data.success) {
+        const events = eventsResponse.data.data;
         setStats(prev => ({
           ...prev,
-          eventosProximos: eventsResponse.data.data.length
+          eventosProximos: events.length
         }));
+        
+        // Últimos 3 eventos próximos
+        setUpcomingEvents(events.slice(0, 3));
       }
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
@@ -432,34 +437,104 @@ function Dashboard() {
                   Ver todos →
                 </Link>
               </div>
-              <div style={{
-                padding: '3rem',
-                textAlign: 'center',
-                color: '#9ca3af',
-                background: 'rgba(249, 250, 251, 0.5)',
-                borderRadius: '12px',
-                border: '2px dashed #e5e7eb'
-              }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-                <p style={{ margin: 0, fontSize: '1.1rem' }}>No hay eventos programados</p>
-                <Link to="/eventos" style={{
-                  display: 'inline-block',
-                  marginTop: '1rem',
-                  padding: '0.75rem 1.5rem',
-                  background: '#3b82f6',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
-                  transition: 'transform 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-                >
-                  Crear evento
-                </Link>
-              </div>
+              {upcomingEvents.length === 0 ? (
+                <div style={{
+                  padding: '3rem',
+                  textAlign: 'center',
+                  color: '#9ca3af',
+                  background: 'rgba(249, 250, 251, 0.5)',
+                  borderRadius: '12px',
+                  border: '2px dashed #e5e7eb'
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                  <p style={{ margin: 0, fontSize: '1.1rem' }}>No hay eventos próximos</p>
+                  <Link to="/calendario" style={{
+                    display: 'inline-block',
+                    marginTop: '1rem',
+                    padding: '0.75rem 1.5rem',
+                    background: '#3b82f6',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                  >
+                    Crear evento
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {upcomingEvents.map(event => (
+                    <Link
+                      key={event.id}
+                      to="/calendario"
+                      style={{
+                        textDecoration: 'none',
+                        display: 'block',
+                        padding: '1rem',
+                        background: event.color ? `${event.color}15` : '#f0fdf4',
+                        borderLeft: `4px solid ${event.color || '#22c55e'}`,
+                        borderRadius: '8px',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateX(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '1.2rem' }}>🎉</span>
+                          <h4 style={{ margin: 0, color: '#1f2937', fontSize: '1rem', fontWeight: '600' }}>
+                            {event.title}
+                          </h4>
+                        </div>
+                        {event.todo_el_dia && (
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '0.25rem 0.5rem',
+                            background: 'rgba(59, 130, 246, 0.1)',
+                            color: '#3b82f6',
+                            borderRadius: '12px',
+                            fontWeight: '600'
+                          }}>
+                            Todo el día
+                          </span>
+                        )}
+                      </div>
+                      {event.description && (
+                        <p style={{
+                          margin: '0 0 0.5rem 0',
+                          fontSize: '0.875rem',
+                          color: '#6b7280',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {event.description}
+                        </p>
+                      )}
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                        <span>📅 {new Date(event.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        {event.ubicacion && <span>📍 {event.ubicacion}</span>}
+                        {event.attendees && event.attendees.length > 0 && (
+                          <span>👥 {event.attendees.length} asistente{event.attendees.length > 1 ? 's' : ''}</span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Tareas recientes */}
