@@ -4,6 +4,110 @@ Sistema moderno de gestión de calendario y tareas con notificaciones push y PWA
 
 ---
 
+## 🚀 [v2.2.0] - 2024-10-11 - Sistema de Adjuntos de Archivos
+
+### ✨ Nuevas Funcionalidades
+
+#### **📎 Sistema Completo de Adjuntos de Archivos**
+- ✅ **Subida de archivos** con drag & drop y selección manual
+- ✅ **Descarga de archivos** con un click
+- ✅ **Eliminación individual** de archivos
+- ✅ **Historial de versiones** (v1, v2, v3...)
+- ✅ **Control de fechas y horas** de subida
+- ✅ **Validación de tipos** de archivo permitidos
+
+#### **🔧 Backend Implementado**
+- ✅ **Nueva tabla `task_attachments`** con versionado y cascade delete
+- ✅ **API completa** para CRUD de adjuntos
+- ✅ **Validación de tipos** (PDF, Word, Excel, imágenes, etc.)
+- ✅ **Límite de 10MB** por archivo
+- ✅ **Verificación de permisos** (solo usuarios asignados)
+- ✅ **Limpieza automática** al eliminar tarea
+- ✅ **Nombres únicos** para evitar conflictos
+
+#### **🎨 Frontend Implementado**
+- ✅ **Componente `AttachmentsSection`** integrado en modal de tareas
+- ✅ **Drag & drop** para subir archivos
+- ✅ **Vista de archivos** con iconos según tipo
+- ✅ **Información detallada**: tamaño, versión, usuario, fecha
+- ✅ **Botones de descarga** y eliminación
+- ✅ **Diseño consistente** con glassmorphism
+
+### 🔐 Seguridad y Permisos
+
+#### **Control de Acceso**
+- ✅ **Solo usuarios asignados** a la tarea pueden ver/subir archivos
+- ✅ **Validación de tipos** de archivo permitidos
+- ✅ **Verificación de permisos** en cada operación
+- ✅ **Eliminación automática** de archivos del servidor
+
+### 📁 Tipos de Archivo Soportados
+
+#### **Formatos Permitidos**
+- ✅ **PDF** - Documentos
+- ✅ **Word** (.doc, .docx) - Documentos de texto
+- ✅ **Excel** (.xls, .xlsx) - Hojas de cálculo
+- ✅ **Imágenes** (.jpg, .jpeg, .png, .gif) - Archivos gráficos
+- ✅ **Texto** (.txt) - Archivos de texto plano
+- ✅ **Comprimidos** (.zip, .rar) - Archivos comprimidos
+
+### 📅 Control Temporal y Trazabilidad
+
+#### **Fechas Inteligentes**
+- ✅ **"Hoy 14:30"** → Para archivos subidos hoy
+- ✅ **"Ayer 09:15"** → Para archivos subidos ayer
+- ✅ **"11/10/25 16:45"** → Para archivos más antiguos
+- ✅ **Zona horaria** configurada para Perú (es-PE)
+
+#### **Trazabilidad Completa**
+- ✅ **Control de versiones** → Saber cuándo se subió cada versión
+- ✅ **Historial de cambios** → Rastrear quién subió qué y cuándo
+- ✅ **Gestión temporal** → Identificar archivos antiguos vs recientes
+- ✅ **Auditoría completa** → Historial completo de cambios
+
+### 🗄️ Gestión de Archivos
+
+#### **Almacenamiento y Limpieza**
+- ✅ **Directorio dedicado** `/uploads/attachments/`
+- ✅ **Cascade delete** → Eliminar tarea = eliminar archivos
+- ✅ **Limpieza automática** del servidor
+- ✅ **Índices de BD** para mejor rendimiento
+
+### 🎯 Casos de Uso Reales
+
+#### **Ejemplos de Implementación**
+- **"Revisa este logo y mejóralo"** → Subir imagen, descargar, editar, re-subir
+- **"Actualiza este contrato"** → Subir Word, descargar, modificar, re-subir
+- **"Añade las nuevas métricas"** → Subir Excel, descargar, actualizar, re-subir
+- **"Documentación del proyecto"** → Subir PDF para referencia
+
+### 📊 Arquitectura Técnica
+
+#### **Base de Datos**
+```sql
+CREATE TABLE task_attachments (
+    id SERIAL PRIMARY KEY,
+    task_id INTEGER REFERENCES tareas(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES usuarios(id),
+    filename VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INTEGER NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    version INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### **API Endpoints**
+- `GET /api/attachments/task/:taskId` - Obtener adjuntos de una tarea
+- `POST /api/attachments/task/:taskId` - Subir adjunto a una tarea
+- `GET /api/attachments/:attachmentId/download` - Descargar adjunto
+- `DELETE /api/attachments/:attachmentId` - Eliminar adjunto
+
+---
+
 ## 🚀 [v2.1.0] - 2024-10-11 - Sistema de Email Notifications
 
 ### ✨ Nuevas Funcionalidades
