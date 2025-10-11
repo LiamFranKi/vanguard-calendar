@@ -13,7 +13,9 @@ const generateEmailTemplate = (config, titulo, mensaje, tipo, ctaText = null, ct
   };
 
   const color = tipoColors[tipo] || '#3b82f6';
-  const logoUrl = config.logo ? `http://localhost:5000${config.logo}` : '';
+  // Para emails, usar una URL pública o base64 del logo
+  // Por ahora, no mostrar logo en emails para evitar problemas de carga
+  const logoUrl = ''; // Temporalmente deshabilitado
 
   return `
 <!DOCTYPE html>

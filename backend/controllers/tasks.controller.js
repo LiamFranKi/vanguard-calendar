@@ -254,14 +254,20 @@ export const createTask = async (req, res) => {
         `, [task.id, assigneeId, 'asignado']);
       }
 
-      // Notificar a los usuarios asignados
-      await createNotification({
-        usuario_id: assignees,
-        titulo: '📋 Nueva tarea asignada',
-        mensaje: `Has sido asignado a la tarea: "${title}"`,
-        tipo: 'info',
-        relacionado_tipo: 'tarea',
-        relacionado_id: task.id
+      // Notificar a los usuarios asignados (asíncrono - no bloquea la respuesta)
+      setImmediate(async () => {
+        try {
+          await createNotification({
+            usuario_id: assignees,
+            titulo: '📋 Nueva tarea asignada',
+            mensaje: `Has sido asignado a la tarea: "${title}"`,
+            tipo: 'info',
+            relacionado_tipo: 'tarea',
+            relacionado_id: task.id
+          });
+        } catch (notifError) {
+          console.error('Error al crear notificación:', notifError);
+        }
       });
     }
 
@@ -451,13 +457,19 @@ export const updateTask = async (req, res) => {
 
             const notification = statusNotifications[updates.status];
             if (notification) {
-              await createNotification({
-                usuario_id: userIds,
-                titulo: notification.title,
-                mensaje: notification.message,
-                tipo: notification.type,
-                relacionado_tipo: 'tarea',
-                relacionado_id: id
+              setImmediate(async () => {
+                try {
+                  await createNotification({
+                    usuario_id: userIds,
+                    titulo: notification.title,
+                    mensaje: notification.message,
+                    tipo: notification.type,
+                    relacionado_tipo: 'tarea',
+                    relacionado_id: id
+                  });
+                } catch (notifError) {
+                  console.error('Error al crear notificación de estado:', notifError);
+                }
               });
             }
           }
@@ -471,13 +483,19 @@ export const updateTask = async (req, res) => {
               'baja': '⚪'
             };
 
-            await createNotification({
-              usuario_id: userIds,
-              titulo: `${priorityEmojis[updates.priority] || '📋'} Prioridad cambiada`,
-              mensaje: `La prioridad de "${taskTitle}" cambió a: ${updates.priority.toUpperCase()}`,
-              tipo: updates.priority === 'urgente' || updates.priority === 'alta' ? 'warning' : 'info',
-              relacionado_tipo: 'tarea',
-              relacionado_id: id
+            setImmediate(async () => {
+              try {
+                await createNotification({
+                  usuario_id: userIds,
+                  titulo: `${priorityEmojis[updates.priority] || '📋'} Prioridad cambiada`,
+                  mensaje: `La prioridad de "${taskTitle}" cambió a: ${updates.priority.toUpperCase()}`,
+                  tipo: updates.priority === 'urgente' || updates.priority === 'alta' ? 'warning' : 'info',
+                  relacionado_tipo: 'tarea',
+                  relacionado_id: id
+                });
+              } catch (notifError) {
+                console.error('Error al crear notificación de prioridad:', notifError);
+              }
             });
           }
         }
@@ -645,26 +663,32 @@ export const addComment = async (req, res) => {
       content: content.substring(0, 100) 
     }]);
 
-    // Notificar a usuarios asignados (excepto quien comentó)
+    // Notificar a usuarios asignados (incluyendo quien comentó)
     try {
       const assignedUsers = await query(
         'SELECT usuario_id FROM tarea_asignaciones WHERE tarea_id = $1',
         [taskId]
       );
-      const userIds = assignedUsers.rows.map(a => a.usuario_id).filter(uid => uid !== userId);
+      const userIds = assignedUsers.rows.map(a => a.usuario_id);
       
       if (userIds.length > 0) {
         const taskInfo = await query('SELECT titulo FROM tareas WHERE id = $1', [taskId]);
         const taskTitle = taskInfo.rows[0]?.titulo || 'una tarea';
         const userName = commentWithUser.user.nombres + ' ' + commentWithUser.user.apellidos;
         
-        await createNotification({
-          usuario_id: userIds,
-          titulo: '💬 Nuevo comentario',
-          mensaje: `${userName} comentó en: "${taskTitle}"`,
-          tipo: 'info',
-          relacionado_tipo: 'tarea',
-          relacionado_id: taskId
+        setImmediate(async () => {
+          try {
+            await createNotification({
+              usuario_id: userIds,
+              titulo: '💬 Nuevo comentario',
+              mensaje: `${userName} comentó en: "${taskTitle}"`,
+              tipo: 'info',
+              relacionado_tipo: 'tarea',
+              relacionado_id: taskId
+            });
+          } catch (notifError) {
+            console.error('Error al crear notificación de comentario:', notifError);
+          }
         });
       }
     } catch (notifError) {

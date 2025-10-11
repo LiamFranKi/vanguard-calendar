@@ -174,19 +174,21 @@ export const createEvent = async (req, res) => {
         `, [event.id, attendeeId, 'participante']);
       }
 
-      // Notificar a los asistentes
-      try {
-        await createNotification({
-          usuario_id: attendees,
-          titulo: '🎉 Invitación a evento',
-          mensaje: `Has sido invitado al evento: "${title}"`,
-          tipo: 'info',
-          relacionado_tipo: 'evento',
-          relacionado_id: event.id
-        });
-      } catch (notifError) {
-        console.error('Error al crear notificación:', notifError);
-      }
+      // Notificar a los asistentes (asíncrono - no bloquea la respuesta)
+      setImmediate(async () => {
+        try {
+          await createNotification({
+            usuario_id: attendees,
+            titulo: '🎉 Invitación a evento',
+            mensaje: `Has sido invitado al evento: "${title}"`,
+            tipo: 'info',
+            relacionado_tipo: 'evento',
+            relacionado_id: event.id
+          });
+        } catch (notifError) {
+          console.error('Error al crear notificación:', notifError);
+        }
+      });
     }
 
     res.status(201).json({
