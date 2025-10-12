@@ -87,7 +87,8 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
-    open: true, // Abre el navegador automáticamente
+    host: '0.0.0.0', // Permitir conexiones externas
+    open: 'http://vanguard-calendar.local:3000', // Abrir con el dominio local
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
