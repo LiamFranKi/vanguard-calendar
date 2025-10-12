@@ -1,10 +1,44 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
+import { showInstallPrompt, canInstallPWA } from '../utils/pwa';
+import { useState, useEffect } from 'react';
 
 function Home() {
   const { isAuthenticated } = useAuth();
   const { config, loading } = useConfig();
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  // Detectar si se puede instalar la PWA
+  useEffect(() => {
+    const checkInstallAvailability = () => {
+      setShowInstallButton(canInstallPWA());
+    };
+
+    // Verificar inmediatamente
+    checkInstallAvailability();
+
+    // Escuchar eventos de instalación
+    window.addEventListener('pwa-install-available', checkInstallAvailability);
+
+    return () => {
+      window.removeEventListener('pwa-install-available', checkInstallAvailability);
+    };
+  }, []);
+
+  const handleInstallPWA = async () => {
+    try {
+      const installed = await showInstallPrompt();
+      if (installed) {
+        setShowInstallButton(false);
+        // Mostrar mensaje de éxito
+        alert('¡Aplicación instalada exitosamente! Ya puedes acceder desde tu dispositivo.');
+      }
+    } catch (error) {
+      console.error('Error al instalar PWA:', error);
+      // No mostrar error al usuario, simplemente no hacer nada
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
@@ -57,10 +91,70 @@ function Home() {
             {isAuthenticated ? (
               <>
                 <Link to="/dashboard" className="btn btn-primary">Dashboard</Link>
+                {showInstallButton && (
+                  <button
+                    onClick={handleInstallPWA}
+                    className="btn btn-outline-primary"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: 'transparent',
+                      border: '2px solid #3b82f6',
+                      color: '#3b82f6',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#3b82f6';
+                      e.target.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'transparent';
+                      e.target.style.color = '#3b82f6';
+                    }}
+                  >
+                    📱 Instalar App
+                  </button>
+                )}
               </>
             ) : (
               <>
                 <Link to="/login" className="btn btn-primary">Iniciar Sesión</Link>
+                {showInstallButton && (
+                  <button
+                    onClick={handleInstallPWA}
+                    className="btn btn-outline-primary"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: 'transparent',
+                      border: '2px solid #3b82f6',
+                      color: '#3b82f6',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#3b82f6';
+                      e.target.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'transparent';
+                      e.target.style.color = '#3b82f6';
+                    }}
+                  >
+                    📱 Instalar App
+                  </button>
+                )}
               </>
             )}
           </div>
