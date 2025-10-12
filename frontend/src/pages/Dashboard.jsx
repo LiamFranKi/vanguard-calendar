@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import NotificationBell from '../components/NotificationBell';
+import { showInstallPrompt, canInstallPWA } from '../utils/pwa';
 import axios from 'axios';
 
 function Dashboard() {
@@ -18,6 +19,7 @@ function Dashboard() {
   });
   const [recentTasks, setRecentTasks] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -26,6 +28,23 @@ function Dashboard() {
       fetchStats();
     }
   }, [isAuthenticated, loading, navigate]);
+
+  // Detectar si se puede instalar la PWA
+  useEffect(() => {
+    const checkInstallAvailability = () => {
+      setShowInstallButton(canInstallPWA());
+    };
+
+    // Verificar inmediatamente
+    checkInstallAvailability();
+
+    // Escuchar eventos de instalación
+    window.addEventListener('pwa-install-available', checkInstallAvailability);
+
+    return () => {
+      window.removeEventListener('pwa-install-available', checkInstallAvailability);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -104,6 +123,18 @@ function Dashboard() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleInstallPWA = async () => {
+    try {
+      const installed = await showInstallPrompt();
+      if (installed) {
+        setShowInstallButton(false);
+        alert('¡Aplicación instalada exitosamente!');
+      }
+    } catch (error) {
+      console.error('Error al instalar PWA:', error);
+    }
   };
 
   const getGreeting = () => {
@@ -202,6 +233,27 @@ function Dashboard() {
               
               {/* Campana de notificaciones */}
               <NotificationBell />
+
+              {/* Botón de instalación PWA */}
+              {showInstallButton && (
+                <button
+                  onClick={handleInstallPWA}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s',
+                    padding: 0,
+                    marginRight: '10px'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                  title="Instalar App"
+                >
+                  📱
+                </button>
+              )}
 
               <button 
                 onClick={handleLogout} 
