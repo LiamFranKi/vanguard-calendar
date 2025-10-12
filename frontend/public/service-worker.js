@@ -121,7 +121,9 @@ self.addEventListener('push', (event) => {
   if (event.data) {
     try {
       data = event.data.json();
+      console.log('[Service Worker] Datos recibidos:', data);
     } catch (e) {
+      console.log('[Service Worker] Error al parsear datos:', e);
       data.body = event.data.text();
     }
   }
@@ -154,8 +156,16 @@ self.addEventListener('push', (event) => {
     timestamp: Date.now()
   };
 
+  console.log('[Service Worker] Mostrando notificación con opciones:', options);
+
   event.waitUntil(
     self.registration.showNotification(data.title || data.titulo || 'Vanguard Calendar', options)
+      .then(() => {
+        console.log('[Service Worker] Notificación mostrada exitosamente');
+      })
+      .catch((error) => {
+        console.error('[Service Worker] Error al mostrar notificación:', error);
+      })
   );
 });
 
