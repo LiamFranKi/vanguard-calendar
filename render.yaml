@@ -12,25 +12,15 @@ services:
       - key: PORT
         value: 5000
       - key: DB_HOST
-        fromDatabase:
-          name: vanguard-calendar-db
-          property: host
+        value: dpg-d3lgf3bipnbc739vt1lg-a.oregon-postgres.render.com
       - key: DB_PORT
-        fromDatabase:
-          name: vanguard-calendar-db
-          property: port
+        value: 5432
       - key: DB_NAME
-        fromDatabase:
-          name: vanguard-calendar-db
-          property: database
+        value: vanguard_calendar_db_jtvd
       - key: DB_USER
-        fromDatabase:
-          name: vanguard-calendar-db
-          property: user
+        value: vanguard_calendar_db_jtvd_user
       - key: DB_PASSWORD
-        fromDatabase:
-          name: vanguard-calendar-db
-          property: password
+        value: tu_password_aqui
 
   # Frontend Service (React)
   - type: web
@@ -42,6 +32,6 @@ services:
       - key: VITE_API_URL
         value: https://vanguard-calendar-backend.onrender.com
 
-databases:
-  - name: vanguard-calendar-db
-    plan: free
+# databases:
+  # - name: vanguard-calendar-db
+  #   plan: free
