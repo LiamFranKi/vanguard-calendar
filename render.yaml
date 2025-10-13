@@ -12,15 +12,15 @@ services:
       - key: PORT
         value: 5000
       - key: DB_HOST
-        value: dpg-d3lgf3bipnbc739vt1lg-a.oregon-postgres.render.com
+        value: dpg-d3m104c9c44c73cv7sig-a.oregon-postgres.render.com
       - key: DB_PORT
         value: 5432
       - key: DB_NAME
-        value: vanguard_calendar_db_jtvd
+        value: vanguard_calendar_db
       - key: DB_USER
-        value: vanguard_calendar_db_jtvd_user
+        value: vanguard_calendar_db_user
       - key: DB_PASSWORD
-        value: tu_password_aqui
+        value: Zk2Au1TtviyStjygJPuFfLuB3K4wXs5x
 
   # Frontend Service (React)
   - type: web
