@@ -3,7 +3,7 @@ services:
   - type: web
     name: vanguard-calendar-backend
     env: node
-    plan: starter
+    plan: free
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
@@ -36,7 +36,6 @@ services:
   - type: web
     name: vanguard-calendar-frontend
     env: static
-    plan: starter
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
     envVars:
@@ -45,4 +44,4 @@ services:
 
 databases:
   - name: vanguard-calendar-db
-    plan: starter
+    plan: free
