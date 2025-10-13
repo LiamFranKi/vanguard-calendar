@@ -1,7 +1,7 @@
 services:
   # Backend Service (Node.js)
   - type: web
-    name: vanguard-calendar-backend
+    name: vanguard-calendar-backend-v2
     env: node
     plan: free
     buildCommand: cd backend && npm install
@@ -24,7 +24,7 @@ services:
 
   # Frontend Service (React)
   - type: web
-    name: vanguard-calendar-frontend
+    name: vanguard-calendar-frontend-v2
     env: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
