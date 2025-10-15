@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL, getServerUrl } from '../config/constants';
 
 const ConfigContext = createContext();
 
@@ -40,7 +41,7 @@ export const ConfigProvider = ({ children }) => {
       // Crear instancia de axios sin headers de autorización para llamadas públicas
       const publicAxios = axios.create();
       
-      const response = await publicAxios.get('/api/config');
+      const response = await publicAxios.get(`${API_URL}/config`);
       console.log('📡 Respuesta del servidor:', response.data);
       
       if (response.data.success) {
@@ -74,7 +75,7 @@ export const ConfigProvider = ({ children }) => {
 
   const updateConfig = async (newConfig) => {
     try {
-      const response = await axios.put('/api/config', newConfig);
+      const response = await axios.put(`${API_URL}/config`, newConfig);
       if (response.data.success) {
         setConfig(response.data.settings);
         return { success: true };
@@ -98,7 +99,7 @@ export const ConfigProvider = ({ children }) => {
       const formData = new FormData();
       formData.append('logo', file);
       
-      const response = await axios.post('/api/config/upload/logo', formData, {
+      const response = await axios.post(`${API_URL}/config/upload/logo`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -122,7 +123,7 @@ export const ConfigProvider = ({ children }) => {
       const formData = new FormData();
       formData.append('favicon', file);
       
-      const response = await axios.post('/api/config/upload/favicon', formData, {
+      const response = await axios.post(`${API_URL}/config/upload/favicon`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -135,7 +136,7 @@ export const ConfigProvider = ({ children }) => {
         const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
         link.type = 'image/x-icon';
         link.rel = 'shortcut icon';
-        link.href = `http://localhost:5000/favicon.ico?t=${Date.now()}`;
+        link.href = `${getServerUrl()}/favicon.ico?t=${Date.now()}`;
         document.getElementsByTagName('head')[0].appendChild(link);
         
         return { success: true };

@@ -5,6 +5,7 @@ import { useConfig } from '../contexts/ConfigContext';
 import NotificationBell from '../components/NotificationBell';
 import { showInstallPrompt, canInstallPWA } from '../utils/pwa';
 import axios from 'axios';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Dashboard() {
   const { user, isAuthenticated, logout, loading } = useAuth();
@@ -186,7 +187,7 @@ function Dashboard() {
           }}>
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 
@@ -309,7 +310,7 @@ function Dashboard() {
               }}>
                 {user?.avatar ? (
                   <img 
-                    src={`http://localhost:5000${user.avatar}`} 
+                    src={`${getImageUrl(user.avatar)}`} 
                     alt={user.nombres}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />

@@ -4,6 +4,7 @@ import { useConfig } from '../contexts/ConfigContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Tasks() {
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
@@ -245,7 +246,7 @@ function Tasks() {
           }}>
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 

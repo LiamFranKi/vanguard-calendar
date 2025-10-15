@@ -7,7 +7,9 @@ import Swal from 'sweetalert2';
 import NotificationBell from '../components/NotificationBell';
 
 // Configurar axios
-axios.defaults.baseURL = 'http://localhost:5000';
+import { API_URL } from '../config/constants';
+import { getImageUrl, getServerUrl } from '../config/constants';
+axios.defaults.baseURL = API_URL.replace('/api', '');
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -228,7 +230,7 @@ function Events() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {config.logo && (
             <img
-              src={`http://localhost:5000${config.logo}`}
+              src={`${getImageUrl(config.logo)}`}
               alt={config.nombre_proyecto}
               style={{ height: '40px' }}
             />
@@ -472,7 +474,7 @@ function Events() {
                               attendee.avatar ? (
                                 <img
                                   key={attendee.id}
-                                  src={`http://localhost:5000${attendee.avatar}`}
+                                  src={`${getImageUrl(attendee.avatar)}`}
                                   alt={attendee.nombres}
                                   style={{
                                     width: '24px',
@@ -787,7 +789,7 @@ function Events() {
                         />
                         {u.avatar ? (
                           <img 
-                            src={`http://localhost:5000${u.avatar}`}
+                            src={`${getImageUrl(u.avatar)}`}
                             alt={u.nombres}
                             style={{
                               width: '32px',

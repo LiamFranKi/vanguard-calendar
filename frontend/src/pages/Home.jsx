@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import { showInstallPrompt, canInstallPWA } from '../utils/pwa';
 import { useState, useEffect } from 'react';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Home() {
   const { isAuthenticated } = useAuth();
@@ -69,7 +70,7 @@ function Home() {
           >
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 

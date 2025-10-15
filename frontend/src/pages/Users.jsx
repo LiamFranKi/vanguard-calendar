@@ -5,6 +5,7 @@ import { useConfig } from '../contexts/ConfigContext';
 import NotificationBell from '../components/NotificationBell';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Users() {
   const [users, setUsers] = useState([]);
@@ -117,7 +118,7 @@ function Users() {
       rol: user.rol
     });
     if (user.avatar) {
-      setAvatarPreview(`http://localhost:5000${user.avatar}`);
+      setAvatarPreview(`${getImageUrl(user.avatar)}`);
     } else {
       setAvatarPreview(null);
     }
@@ -220,7 +221,7 @@ function Users() {
           }}>
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 
@@ -383,7 +384,7 @@ function Users() {
                       }}>
                         {userItem.avatar ? (
                           <img 
-                            src={`http://localhost:5000${userItem.avatar}`} 
+                            src={`${getImageUrl(userItem.avatar)}`} 
                             alt={userItem.nombres}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />

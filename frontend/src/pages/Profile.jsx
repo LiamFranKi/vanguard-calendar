@@ -5,6 +5,7 @@ import { useConfig } from '../contexts/ConfigContext';
 import NotificationBell from '../components/NotificationBell';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Profile() {
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ function Profile() {
         confirmarClave: ''
       });
       if (userData.avatar) {
-        setAvatarPreview(`http://localhost:5000${userData.avatar}`);
+        setAvatarPreview(`${getImageUrl(userData.avatar)}`);
       }
       setLoading(false);
     } catch (error) {
@@ -181,7 +182,7 @@ function Profile() {
           }}>
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 

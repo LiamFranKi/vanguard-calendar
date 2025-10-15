@@ -6,6 +6,7 @@ import NotificationBell from '../components/NotificationBell';
 import AttachmentsSection from '../components/AttachmentsSection';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Tasks() {
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
@@ -419,7 +420,7 @@ function Tasks() {
           }}>
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 
@@ -979,7 +980,7 @@ function Tasks() {
                             >
                               {assignee.avatar ? (
                                 <img 
-                                  src={`http://localhost:5000${assignee.avatar}`}
+                                  src={`${getImageUrl(assignee.avatar)}`}
                                   alt={assignee.nombres}
                                   style={{
                                     width: '24px',
@@ -1389,7 +1390,7 @@ function TaskFormModal({
                     />
                     {u.avatar ? (
                       <img 
-                        src={`http://localhost:5000${u.avatar}`}
+                        src={`${getImageUrl(u.avatar)}`}
                         alt={u.nombres}
                         style={{
                           width: '32px',
@@ -1818,7 +1819,7 @@ function TaskDetailModal({
                 >
                   {assignee.avatar ? (
                     <img 
-                      src={`http://localhost:5000${assignee.avatar}`}
+                      src={`${getImageUrl(assignee.avatar)}`}
                       alt={assignee.nombres}
                       style={{
                         width: '40px',
@@ -2024,7 +2025,7 @@ function TaskDetailModal({
                   }}>
                     {comment.avatar ? (
                       <img 
-                        src={`http://localhost:5000${comment.avatar}`}
+                        src={`${getImageUrl(comment.avatar)}`}
                         alt={comment.nombres}
                         style={{
                           width: '36px',
@@ -2358,7 +2359,7 @@ function KanbanView({ tasks, onTaskClick, onStatusChange, getPriorityColor, getS
                               assignee.avatar ? (
                                 <img
                                   key={assignee.id}
-                                  src={`http://localhost:5000${assignee.avatar}`}
+                                  src={`${getImageUrl(assignee.avatar)}`}
                                   alt={assignee.nombres}
                                   style={{
                                     width: '20px',

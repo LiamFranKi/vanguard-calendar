@@ -6,6 +6,7 @@ import NotificationBell from '../components/NotificationBell';
 import PushNotificationManager from '../components/PushNotificationManager';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Settings() {
   const [loading, setLoading] = useState(true);
@@ -135,7 +136,7 @@ function Settings() {
           }}>
             {config.logo ? (
               <img 
-                src={`http://localhost:5000${config.logo}`} 
+                src={`${getImageUrl(config.logo)}`} 
                 alt="Logo" 
                 style={{ 
                   width: '40px', 
@@ -403,7 +404,7 @@ function Settings() {
                     }}>
                       {logoPreview ? (
                         <img 
-                          src={logoPreview.startsWith('data:') ? logoPreview : `http://localhost:5000${logoPreview}`} 
+                          src={logoPreview.startsWith('data:') ? logoPreview : `${getImageUrl(logoPreview)}`} 
                           alt="Logo" 
                           style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
                         />

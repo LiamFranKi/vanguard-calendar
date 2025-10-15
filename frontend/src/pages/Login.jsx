@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
+import { getImageUrl, getServerUrl } from '../config/constants';
 
 function Login() {
   const [dni, setDni] = useState('');
@@ -77,7 +78,7 @@ function Login() {
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           {config.logo ? (
             <img 
-              src={`http://localhost:5000${config.logo}`} 
+              src={`${getImageUrl(config.logo)}`} 
               alt="Logo" 
               style={{ 
                 width: '100px', 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useAuth } from '../contexts/AuthContext';
+import { getImageUrl, getServerUrl } from '../config/constants';
 import {
   isPushNotificationSupported,
   requestNotificationPermission,
@@ -58,7 +59,7 @@ const PushNotificationManager = () => {
       }
 
       // Obtener clave pública VAPID
-      const vapidResponse = await axios.get('http://localhost:5000/api/push/vapid-public-key', {
+      const vapidResponse = await axios.get('${getServerUrl()}/api/push/vapid-public-key', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -76,7 +77,7 @@ const PushNotificationManager = () => {
       }
 
       // Enviar suscripción al backend
-      await axios.post('http://localhost:5000/api/push/subscribe', 
+      await axios.post('${getServerUrl()}/api/push/subscribe', 
         { subscription },
         {
           headers: {
@@ -136,7 +137,7 @@ const PushNotificationManager = () => {
           .then(reg => reg.pushManager.getSubscription());
         
         if (subscription) {
-          await axios.post('http://localhost:5000/api/push/unsubscribe',
+          await axios.post('${getServerUrl()}/api/push/unsubscribe',
             { endpoint: subscription.endpoint },
             {
               headers: {
@@ -172,7 +173,7 @@ const PushNotificationManager = () => {
     try {
       setLoading(true);
 
-      await axios.post('http://localhost:5000/api/push/test', 
+      await axios.post('${getServerUrl()}/api/push/test', 
         {},
         {
           headers: {
