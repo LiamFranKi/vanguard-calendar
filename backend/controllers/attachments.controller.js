@@ -4,6 +4,7 @@ import { dirname, join } from 'path';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { createNotification } from './notifications.controller.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -183,6 +184,39 @@ export const uploadAttachment = async (req, res) => {
         avatar: userResult.rows[0].avatar
       }
     };
+
+    // Notificar a usuarios asignados sobre el nuevo archivo
+    try {
+      const assignedUsers = await query(
+        'SELECT usuario_id FROM tarea_asignaciones WHERE tarea_id = $1',
+        [taskId]
+      );
+      const userIds = assignedUsers.rows.map(a => a.usuario_id);
+      
+      if (userIds.length > 0) {
+        const taskInfo = await query('SELECT titulo FROM tareas WHERE id = $1', [taskId]);
+        const taskTitle = taskInfo.rows[0]?.titulo || 'una tarea';
+        const userName = userResult.rows[0].nombres + ' ' + userResult.rows[0].apellidos;
+        const fileName = req.file.originalname;
+        
+        setImmediate(async () => {
+          try {
+            await createNotification({
+              usuario_id: userIds,
+              titulo: '📎 Nuevo archivo adjunto',
+              mensaje: `${userName} subió el archivo "${fileName}" a: "${taskTitle}"`,
+              tipo: 'info',
+              relacionado_tipo: 'tarea',
+              relacionado_id: taskId
+            });
+          } catch (notifError) {
+            console.error('Error al crear notificación de archivo:', notifError);
+          }
+        });
+      }
+    } catch (notifError) {
+      console.error('Error al crear notificación de archivo:', notifError);
+    }
 
     res.status(201).json({
       success: true,

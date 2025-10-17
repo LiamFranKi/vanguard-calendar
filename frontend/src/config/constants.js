@@ -1,6 +1,6 @@
-// Configuración del servidor
-export const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Configuración para producción
+export const SERVER_URL = 'https://calendar.vanguardschools.edu.pe';
+export const API_URL = 'https://calendar.vanguardschools.edu.pe/api';
 
 // Función para obtener la URL completa de un endpoint
 export const getServerUrl = (path = '') => {

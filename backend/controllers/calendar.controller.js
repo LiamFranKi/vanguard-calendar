@@ -96,6 +96,8 @@ export const getCalendarEvents = async (req, res) => {
         if (end_date) params.push(end_date);
 
         const eventsResult = await query(eventsQuery, params);
+        console.log('📅 Eventos encontrados en BD:', eventsResult.rows.length);
+        console.log('📅 Eventos:', eventsResult.rows.map(e => ({ id: e.id, title: e.title, date: e.date })));
         calendarItems = [...calendarItems, ...eventsResult.rows];
       } catch (eventError) {
         console.error('⚠️ Error al obtener eventos (tabla eventos puede no existir):', eventError.message);
@@ -340,7 +342,14 @@ export const getEventById = async (req, res) => {
 
     const eventResult = await query(`
       SELECT 
-        e.*,
+        e.id,
+        e.titulo as title,
+        e.descripcion as description,
+        e.fecha_inicio,
+        e.fecha_fin,
+        e.ubicacion,
+        e.color,
+        e.todo_el_dia as all_day,
         ARRAY_AGG(
           CASE 
             WHEN ea.usuario_id IS NOT NULL 
@@ -358,7 +367,7 @@ export const getEventById = async (req, res) => {
       LEFT JOIN evento_asignaciones ea ON e.id = ea.evento_id
       LEFT JOIN usuarios u ON ea.usuario_id = u.id
       WHERE e.id = $1
-      GROUP BY e.id
+      GROUP BY e.id, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, e.ubicacion, e.color, e.todo_el_dia
     `, [id]);
 
     if (eventResult.rows.length === 0) {

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import NotificationBell from '../components/NotificationBell';
+import Navbar from '../components/Navbar';
 
 // Configurar axios
 import { API_URL } from '../config/constants';
@@ -22,14 +22,18 @@ function Events() {
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
   const { config } = useConfig();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' o 'past'
   const [editingEvent, setEditingEvent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showEventModal, setShowEventModal] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -41,6 +45,36 @@ function Events() {
     todo_el_dia: false,
     attendees: []
   });
+
+  // Función para separar eventos en próximos y pasados (considerando búsqueda)
+  const getUpcomingEvents = () => {
+    const now = new Date();
+    // Usar filteredEvents si tiene datos, sino usar events directamente
+    const eventsToFilter = filteredEvents.length > 0 ? filteredEvents : events;
+    let filtered = eventsToFilter.filter(event => {
+      // El backend devuelve 'date' para eventos, no 'fecha_inicio'
+      const eventDate = new Date(event.date || event.fecha_inicio);
+      return eventDate >= now;
+    });
+    return filtered;
+  };
+
+  const getPastEvents = () => {
+    const now = new Date();
+    // Usar filteredEvents si tiene datos, sino usar events directamente
+    const eventsToFilter = filteredEvents.length > 0 ? filteredEvents : events;
+    let filtered = eventsToFilter.filter(event => {
+      // El backend devuelve 'date' para eventos, no 'fecha_inicio'
+      const eventDate = new Date(event.date || event.fecha_inicio);
+      return eventDate < now;
+    });
+    return filtered;
+  };
+
+  // Función para obtener eventos según el tab activo
+  const getCurrentTabEvents = () => {
+    return activeTab === 'upcoming' ? getUpcomingEvents() : getPastEvents();
+  };
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -55,14 +89,38 @@ function Events() {
     filterEvents();
   }, [events, searchTerm]);
 
+  // Efecto para actualizar cuando cambie el tab activo
+  useEffect(() => {
+    // No necesitamos hacer nada aquí, las funciones ya están reactivas
+  }, [activeTab]);
+
+  // Efecto para manejar el parámetro openEvent de la URL
+  useEffect(() => {
+    const openEventId = searchParams.get('openEvent');
+    if (openEventId && events.length > 0) {
+      const eventToOpen = events.find(event => event.id === parseInt(openEventId));
+      if (eventToOpen) {
+        openEventModal(eventToOpen);
+        // Limpiar el parámetro de la URL
+        setSearchParams({});
+      }
+    }
+  }, [events, searchParams, setSearchParams]);
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
       const response = await axios.get('/api/calendar/events', {
         params: { type: 'events' }
       });
+      
+      console.log('📅 Eventos recibidos:', response.data);
+      
       if (response.data.success) {
         setEvents(response.data.data);
+        console.log('📅 Eventos cargados:', response.data.data);
+        console.log('📅 Cantidad de eventos:', response.data.data.length);
+        console.log('📅 Tipos de eventos:', response.data.data.map(e => ({ title: e.title, type: e.type })));
       }
     } catch (error) {
       console.error('Error al cargar eventos:', error);
@@ -87,6 +145,7 @@ function Events() {
   const filterEvents = () => {
     let filtered = [...events];
 
+    // Filtrar por búsqueda
     if (searchTerm) {
       filtered = filtered.filter(event =>
         event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,6 +170,11 @@ function Events() {
       attendees: []
     });
     setShowModal(true);
+  };
+
+  const openEventModal = (event) => {
+    setSelectedEvent(event);
+    setShowEventModal(true);
   };
 
   const openEditModal = (event) => {
@@ -216,81 +280,8 @@ function Events() {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '0'
     }}>
-      {/* Navbar */}
-      <nav style={{
-        background: 'rgba(255, 255, 255, 0.2)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {config.logo && (
-            <img
-              src={`${getImageUrl(config.logo)}`}
-              alt={config.nombre_proyecto}
-              style={{ height: '40px' }}
-            />
-          )}
-          <h1 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: '700' }}>
-            {config.nombre_proyecto || 'Vanguard Calendar'}
-          </h1>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <a href="/dashboard" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Dashboard</a>
-          <a href="/tareas" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Tareas</a>
-          <a href="/calendario" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Calendario</a>
-          <a href="/eventos" style={{ textDecoration: 'none', color: 'white', fontWeight: '600', borderBottom: '2px solid white', paddingBottom: '0.25rem' }}>Eventos</a>
-          {user?.rol === 'Administrador' && (
-            <>
-              <a href="/users" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Usuarios</a>
-              <a href="/settings" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Configuración</a>
-            </>
-          )}
-          {/* Iconos de acción agrupados */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
-            <button 
-              onClick={() => navigate('/profile')}
-              style={{ 
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                padding: 0
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              title="Mi Perfil"
-            >
-              👤
-            </button>
-            
-            <NotificationBell />
-
-            <button 
-              onClick={handleLogout} 
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                padding: 0
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              title="Cerrar Sesión"
-            >
-              🚀
-            </button>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar unificado */}
+      <Navbar />
 
       {/* Contenido principal */}
       <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
@@ -310,7 +301,8 @@ function Events() {
                 🎉 Gestión de Eventos
               </h2>
               <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)' }}>
-                {filteredEvents.length} evento{filteredEvents.length !== 1 ? 's' : ''} {searchTerm && `encontrado${filteredEvents.length !== 1 ? 's' : ''}`}
+                {getCurrentTabEvents().length} evento{getCurrentTabEvents().length !== 1 ? 's' : ''} {searchTerm && `encontrado${getCurrentTabEvents().length !== 1 ? 's' : ''}`}
+                {activeTab === 'upcoming' ? ' próximos' : ' pasados'}
               </p>
             </div>
 
@@ -355,6 +347,76 @@ function Events() {
           </div>
         </div>
 
+        {/* Tabs de navegación */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '12px',
+          padding: '0.5rem',
+          marginBottom: '1.5rem',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          gap: '0.5rem'
+        }}>
+          <button
+            onClick={() => setActiveTab('upcoming')}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              border: 'none',
+              borderRadius: '8px',
+              background: activeTab === 'upcoming' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'upcoming' ? 'white' : '#6b7280',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              fontSize: '1rem'
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'upcoming') {
+                e.target.style.background = 'rgba(59, 130, 246, 0.1)';
+                e.target.style.color = '#3b82f6';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'upcoming') {
+                e.target.style.background = 'transparent';
+                e.target.style.color = '#6b7280';
+              }
+            }}
+          >
+            📅 Próximos Eventos ({getUpcomingEvents().length})
+          </button>
+          <button
+            onClick={() => setActiveTab('past')}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              border: 'none',
+              borderRadius: '8px',
+              background: activeTab === 'past' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'past' ? 'white' : '#6b7280',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              fontSize: '1rem'
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'past') {
+                e.target.style.background = 'rgba(59, 130, 246, 0.1)';
+                e.target.style.color = '#3b82f6';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'past') {
+                e.target.style.background = 'transparent';
+                e.target.style.color = '#6b7280';
+              }
+            }}
+          >
+            📚 Eventos Pasados ({getPastEvents().length})
+          </button>
+        </div>
+
         {/* Lista de eventos */}
         {loading ? (
           <div style={{
@@ -365,7 +427,7 @@ function Events() {
           }}>
             Cargando eventos...
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : getCurrentTabEvents().length === 0 ? (
           <div style={{
             background: 'rgba(255, 255, 255, 0.95)',
             borderRadius: '16px',
@@ -375,10 +437,12 @@ function Events() {
           }}>
             <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📭</div>
             <h3 style={{ margin: '0 0 0.5rem 0', color: '#1f2937' }}>
-              {searchTerm ? 'No se encontraron eventos' : 'No hay eventos'}
+              {searchTerm ? 'No se encontraron eventos' : 
+               activeTab === 'upcoming' ? 'No hay eventos próximos' : 'No hay eventos pasados'}
             </h3>
             <p style={{ margin: '0 0 1.5rem 0', color: '#6b7280' }}>
-              {searchTerm ? 'Intenta con otros términos de búsqueda' : 'Comienza creando tu primer evento'}
+              {searchTerm ? 'Intenta con otros términos de búsqueda' : 
+               activeTab === 'upcoming' ? 'Los eventos que crees aparecerán aquí' : 'Los eventos que ya pasaron aparecerán aquí'}
             </p>
             {!searchTerm && (
               <button
@@ -401,16 +465,18 @@ function Events() {
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {filteredEvents.map(event => (
+            {getCurrentTabEvents().map(event => (
               <div
                 key={event.id}
+                onClick={() => openEventModal(event)}
                 style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   borderRadius: '12px',
                   padding: '1.5rem',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   borderLeft: `4px solid ${event.color || '#22c55e'}`,
-                  transition: 'transform 0.2s, box-shadow 0.2s'
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
@@ -533,7 +599,10 @@ function Events() {
 
                   <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                     <button
-                      onClick={() => openEditModal(event)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditModal(event);
+                      }}
                       style={{
                         padding: '0.5rem',
                         borderRadius: '6px',
@@ -551,7 +620,10 @@ function Events() {
                       ✏️
                     </button>
                     <button
-                      onClick={() => handleDelete(event.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(event.id);
+                      }}
                       style={{
                         padding: '0.5rem',
                         borderRadius: '6px',
@@ -860,6 +932,335 @@ function Events() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Vista Previa del Evento */}
+      {showEventModal && selectedEvent && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
+          }}>
+            {/* Header del Modal */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1.5rem',
+              paddingBottom: '1rem',
+              borderBottom: '2px solid #f3f4f6'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: selectedEvent.color || '#22c55e'
+                }}></div>
+                <h2 style={{
+                  margin: 0,
+                  color: '#1f2937',
+                  fontSize: '1.5rem',
+                  fontWeight: '700'
+                }}>
+                  {selectedEvent.title}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowEventModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0.5rem',
+                  borderRadius: '50%',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.background = '#f3f4f6'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Contenido del Evento */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Descripción */}
+              {selectedEvent.description && (
+                <div>
+                  <h3 style={{
+                    margin: '0 0 0.5rem 0',
+                    color: '#374151',
+                    fontSize: '1.1rem',
+                    fontWeight: '600'
+                  }}>
+                    📝 Descripción
+                  </h3>
+                  <p style={{
+                    margin: 0,
+                    color: '#6b7280',
+                    lineHeight: '1.6',
+                    fontSize: '1rem'
+                  }}>
+                    {selectedEvent.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Fechas */}
+              <div>
+                <h3 style={{
+                  margin: '0 0 0.5rem 0',
+                  color: '#374151',
+                  fontSize: '1.1rem',
+                  fontWeight: '600'
+                }}>
+                  📅 Fechas
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>🕐</span>
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#374151' }}>
+                        {selectedEvent.all_day ? 'Todo el día' : 'Fecha y hora'}
+                      </div>
+                      <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                        {selectedEvent.all_day 
+                          ? new Date(selectedEvent.date).toLocaleDateString('es-ES', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })
+                          : new Date(selectedEvent.date).toLocaleString('es-ES', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedEvent.end_date && selectedEvent.end_date !== selectedEvent.date && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.75rem',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '8px'
+                    }}>
+                      <span style={{ fontSize: '1.2rem' }}>🏁</span>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#374151' }}>
+                          Fecha de fin
+                        </div>
+                        <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                          {selectedEvent.all_day 
+                            ? new Date(selectedEvent.end_date).toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })
+                            : new Date(selectedEvent.end_date).toLocaleString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ubicación */}
+              {selectedEvent.ubicacion && (
+                <div>
+                  <h3 style={{
+                    margin: '0 0 0.5rem 0',
+                    color: '#374151',
+                    fontSize: '1.1rem',
+                    fontWeight: '600'
+                  }}>
+                    📍 Ubicación
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>📍</span>
+                    <span style={{ color: '#6b7280' }}>{selectedEvent.ubicacion}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Asistentes */}
+              {selectedEvent.attendees && selectedEvent.attendees.length > 0 && (
+                <div>
+                  <h3 style={{
+                    margin: '0 0 0.5rem 0',
+                    color: '#374151',
+                    fontSize: '1.1rem',
+                    fontWeight: '600'
+                  }}>
+                    👥 Asistentes ({selectedEvent.attendees.length})
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem'
+                  }}>
+                    {selectedEvent.attendees.map((attendee, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.5rem 0.75rem',
+                          backgroundColor: '#eff6ff',
+                          borderRadius: '20px',
+                          border: '1px solid #dbeafe'
+                        }}
+                      >
+                        {attendee.avatar ? (
+                          <img
+                            src={attendee.avatar}
+                            alt={attendee.nombres}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            backgroundColor: '#3b82f6',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '0.8rem',
+                            fontWeight: '600'
+                          }}>
+                            {attendee.nombres.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span style={{
+                          fontSize: '0.9rem',
+                          color: '#1e40af',
+                          fontWeight: '500'
+                        }}>
+                          {attendee.nombres} {attendee.apellidos}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Botones de Acción */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '1rem',
+              marginTop: '2rem',
+              paddingTop: '1.5rem',
+              borderTop: '2px solid #f3f4f6'
+            }}>
+              <button
+                onClick={() => {
+                  setShowEventModal(false);
+                  openEditModal(selectedEvent);
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#3b82f6',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.background = '#2563eb'}
+                onMouseLeave={(e) => e.target.style.background = '#3b82f6'}
+              >
+                ✏️ Editar Evento
+              </button>
+              <button
+                onClick={() => setShowEventModal(false)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: '2px solid #d1d5db',
+                  background: 'white',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.borderColor = '#9ca3af';
+                  e.target.style.backgroundColor = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.borderColor = '#d1d5db';
+                  e.target.style.backgroundColor = 'white';
+                }}
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

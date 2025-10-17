@@ -59,7 +59,7 @@ const PushNotificationManager = () => {
       }
 
       // Obtener clave pública VAPID
-      const vapidResponse = await axios.get('${getServerUrl()}/api/push/vapid-public-key', {
+      const vapidResponse = await axios.get(`${getServerUrl()}/api/push/vapid-public-key`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -77,7 +77,7 @@ const PushNotificationManager = () => {
       }
 
       // Enviar suscripción al backend
-      await axios.post('${getServerUrl()}/api/push/subscribe', 
+      await axios.post(`${getServerUrl()}/api/push/subscribe`, 
         { subscription },
         {
           headers: {
@@ -137,7 +137,7 @@ const PushNotificationManager = () => {
           .then(reg => reg.pushManager.getSubscription());
         
         if (subscription) {
-          await axios.post('${getServerUrl()}/api/push/unsubscribe',
+          await axios.post(`${getServerUrl()}/api/push/unsubscribe`,
             { endpoint: subscription.endpoint },
             {
               headers: {
@@ -173,7 +173,7 @@ const PushNotificationManager = () => {
     try {
       setLoading(true);
 
-      await axios.post('${getServerUrl()}/api/push/test', 
+      await axios.post(`${getServerUrl()}/api/push/test`, 
         {},
         {
           headers: {

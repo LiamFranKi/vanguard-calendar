@@ -236,8 +236,9 @@ self.addEventListener('sync', (event) => {
 self.addEventListener('message', (event) => {
   console.log('[Service Worker] Mensaje recibido:', event.data);
   
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  // Comentado para evitar el modal de actualización automática
+  // if (event.data && event.data.type === 'SKIP_WAITING') {
+  //   self.skipWaiting();
+  // }
 });
 

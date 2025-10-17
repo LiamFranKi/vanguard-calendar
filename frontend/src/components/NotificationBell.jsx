@@ -121,7 +121,7 @@ function NotificationBell() {
           border: 'none',
           cursor: 'pointer',
           fontSize: '1.5rem',
-          padding: '0.5rem',
+          padding: '0.25rem',
           borderRadius: '8px',
           transition: 'background 0.2s'
         }}

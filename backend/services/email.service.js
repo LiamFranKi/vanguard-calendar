@@ -125,7 +125,7 @@ export const sendNotificationEmail = async (userEmail, titulo, mensaje, tipo, re
       ctaLink = `http://localhost:3000/tareas?openTask=${relacionado_id}`;
     } else if (relacionado_tipo === 'evento' && relacionado_id) {
       ctaText = 'Ver Evento';
-      ctaLink = `http://localhost:3000/calendario`;
+      ctaLink = `http://localhost:3000/eventos?openEvent=${relacionado_id}`;
     }
 
     const htmlContent = generateEmailTemplate(config, titulo, mensaje, tipo, ctaText, ctaLink);

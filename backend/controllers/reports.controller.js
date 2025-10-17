@@ -63,7 +63,7 @@ export const getGeneralStats = async (req, res) => {
         COALESCE(p.color, '#6b7280') as color,
         COUNT(t.id) as cantidad
       FROM tareas t
-      LEFT JOIN projects p ON t.proyecto_id = p.id
+      LEFT JOIN projects p ON t.project_id = p.id
       GROUP BY p.name, p.color
       ORDER BY cantidad DESC
     `;
@@ -178,7 +178,7 @@ export const getTasksReport = async (req, res) => {
 
     if (proyecto_id) {
       paramCount++;
-      whereConditions.push(`t.proyecto_id = $${paramCount}`);
+      whereConditions.push(`t.project_id = $${paramCount}`);
       params.push(proyecto_id);
     }
 
@@ -214,7 +214,7 @@ export const getTasksReport = async (req, res) => {
           END
         ) FILTER (WHERE ta.usuario_id IS NOT NULL) as asignados
       FROM tareas t
-      LEFT JOIN projects p ON t.proyecto_id = p.id
+      LEFT JOIN projects p ON t.project_id = p.id
       LEFT JOIN usuarios creator ON t.creado_por = creator.id
       LEFT JOIN tarea_asignaciones ta ON t.id = ta.tarea_id
       LEFT JOIN usuarios u ON ta.usuario_id = u.id
@@ -451,7 +451,7 @@ export const exportToCSV = async (req, res) => {
           p.name as proyecto,
           STRING_AGG(DISTINCT u.nombres || ' ' || u.apellidos, ', ') as asignados
         FROM tareas t
-        LEFT JOIN projects p ON t.proyecto_id = p.id
+        LEFT JOIN projects p ON t.project_id = p.id
         LEFT JOIN tarea_asignaciones ta ON t.id = ta.tarea_id
         LEFT JOIN usuarios u ON ta.usuario_id = u.id
         WHERE 1=1

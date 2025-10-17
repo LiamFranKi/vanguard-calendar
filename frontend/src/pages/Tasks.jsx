@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import { useNavigate, Link } from 'react-router-dom';
-import NotificationBell from '../components/NotificationBell';
+import Navbar from '../components/Navbar';
 import AttachmentsSection from '../components/AttachmentsSection';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -393,99 +393,8 @@ function Tasks() {
       background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}CC 0%, ${config.color_secundario || '#764ba2'}CC 100%)`,
       position: 'relative'
     }}>
-      {/* Navbar */}
-      <nav style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-        padding: '1rem 0',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
-      }}>
-        <div className="container" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Link to="/dashboard" style={{
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: '#1f2937'
-          }}>
-            {config.logo ? (
-              <img 
-                src={`${getImageUrl(config.logo)}`} 
-                alt="Logo" 
-                style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  objectFit: 'contain'
-                }} 
-              />
-            ) : (
-              <span style={{ fontSize: '2rem' }}>📅</span>
-            )}
-            <span>{config.nombre_proyecto}</span>
-          </Link>
-          
-          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-            <Link to="/dashboard" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Dashboard</Link>
-            <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
-            <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
-            <Link to="/tareas" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '600' }}>Tareas</Link>
-            {user?.rol === 'Administrador' && (
-              <>
-                <Link to="/users" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Usuarios</Link>
-                <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
-              </>
-            )}
-            {/* Iconos de acción agrupados */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
-              <button 
-                onClick={() => navigate('/profile')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  padding: 0
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                title="Mi Perfil"
-              >
-                👤
-              </button>
-              
-              <NotificationBell />
-
-              <button 
-                onClick={logout} 
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  padding: 0
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                title="Cerrar Sesión"
-              >
-                🚀
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar unificado */}
+      <Navbar />
 
       {/* Contenido Principal */}
       <div className="container" style={{ padding: '2rem 0' }}>

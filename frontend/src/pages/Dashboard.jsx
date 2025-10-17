@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
-import NotificationBell from '../components/NotificationBell';
+import Navbar from '../components/Navbar';
 import { showInstallPrompt, canInstallPWA } from '../utils/pwa';
 import axios from 'axios';
 import { getImageUrl, getServerUrl } from '../config/constants';
@@ -103,8 +103,8 @@ function Dashboard() {
           eventosProximos: events.length
         }));
         
-        // Solo los 2 primeros eventos próximos (ordenados por fecha)
-        setUpcomingEvents(events.slice(0, 2));
+        // Solo los 3 primeros eventos próximos (ordenados por fecha)
+        setUpcomingEvents(events.slice(0, 3));
       }
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
@@ -160,122 +160,8 @@ function Dashboard() {
       background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}CC 0%, ${config.color_secundario || '#764ba2'}CC 100%)`,
       position: 'relative'
     }}>
-      {/* Navbar moderna */}
-      <nav style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-        padding: '1rem 0',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
-      }}>
-        <div className="container" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Link to="/dashboard" style={{
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: '#1f2937'
-          }}>
-            {config.logo ? (
-              <img 
-                src={`${getImageUrl(config.logo)}`} 
-                alt="Logo" 
-                style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  objectFit: 'contain'
-                }} 
-              />
-            ) : (
-              <span style={{ fontSize: '2rem' }}>📅</span>
-            )}
-            <span>{config.nombre_proyecto}</span>
-          </Link>
-          
-          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-            <Link to="/dashboard" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '500' }}>Dashboard</Link>
-            <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
-            <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
-            <Link to="/tareas" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Tareas</Link>
-            <Link to="/reportes" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Reportes</Link>
-            {user?.rol === 'administrador' && (
-              <>
-                <Link to="/users" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Usuarios</Link>
-                <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
-              </>
-            )}
-            {/* Iconos de acción agrupados */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
-              <button 
-                onClick={() => navigate('/profile')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  padding: 0
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                title="Mi Perfil"
-              >
-                👤
-              </button>
-              
-              {/* Campana de notificaciones */}
-              <NotificationBell />
-
-              {/* Botón de instalación PWA */}
-              {showInstallButton && (
-                <button
-                  onClick={handleInstallPWA}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '1.5rem',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s',
-                    padding: 0,
-                    marginRight: '10px'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  title="Instalar App"
-                >
-                  📱
-                </button>
-              )}
-
-              <button 
-                onClick={handleLogout} 
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  padding: 0
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                title="Cerrar Sesión"
-              >
-                🚀
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar unificado */}
+      <Navbar />
 
       {/* Contenido principal */}
       <main style={{ padding: '3rem 0' }}>
@@ -658,89 +544,154 @@ function Dashboard() {
                   </Link>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {recentTasks.map(task => (
-                    <Link 
+                    <div 
                       key={task.id}
-                      to="/tareas"
                       style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1rem',
-                        background: 'rgba(249, 250, 251, 0.8)',
-                        borderRadius: '10px',
-                        textDecoration: 'none',
+                        padding: '1.25rem',
+                        background: 'white',
+                        borderRadius: '12px',
                         border: '1px solid #e5e7eb',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
                         transition: 'all 0.2s'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
-                        e.currentTarget.style.transform = 'translateX(5px)';
-                        e.currentTarget.style.borderColor = '#3b82f6';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(249, 250, 251, 0.8)';
-                        e.currentTarget.style.transform = 'translateX(0)';
-                        e.currentTarget.style.borderColor = '#e5e7eb';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
                       }}
                     >
-                      <div style={{ flex: 1 }}>
+                      {/* Título de la tarea */}
+                      <div style={{ 
+                        fontWeight: '600', 
+                        color: '#1f2937',
+                        marginBottom: '0.75rem',
+                        fontSize: '1rem',
+                        lineHeight: '1.4'
+                      }}>
+                        {task.title}
+                      </div>
+
+                      {/* Información de la tarea */}
+                      <div style={{ 
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem'
+                      }}>
+                        {/* Información izquierda */}
                         <div style={{ 
-                          fontWeight: '600', 
-                          color: '#1f2937',
-                          marginBottom: '0.25rem',
-                          fontSize: '0.95rem'
-                        }}>
-                          {task.title}
-                        </div>
-                        <div style={{ 
-                          fontSize: '0.8rem', 
-                          color: '#6b7280',
                           display: 'flex',
-                          gap: '0.75rem',
+                          gap: '1rem',
                           alignItems: 'center',
                           flexWrap: 'wrap'
                         }}>
+                          {/* Proyecto */}
                           {task.project_name && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <span style={{
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '0.5rem',
+                              padding: '0.25rem 0.75rem',
+                              background: '#f3f4f6',
+                              borderRadius: '20px',
+                              fontSize: '0.85rem',
+                              color: '#374151'
+                            }}>
+                              <div style={{
                                 width: '8px',
                                 height: '8px',
                                 borderRadius: '50%',
-                                background: task.project_color || '#6b7280',
-                                display: 'inline-block'
+                                background: task.project_color || '#6b7280'
                               }} />
                               {task.project_name}
-                            </span>
+                            </div>
                           )}
+
+                          {/* Fecha */}
                           {task.due_date && (
-                            <span>📅 {new Date(task.due_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.85rem',
+                              color: '#6b7280'
+                            }}>
+                              📅 {new Date(task.due_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                            </div>
                           )}
+
+                          {/* Asignados */}
                           {task.assignee_count > 0 && (
-                            <span>👥 {task.assignee_count}</span>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.85rem',
+                              color: '#6b7280'
+                            }}>
+                              👥 {task.assignee_count}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Estado y prioridad */}
+                        <div style={{ 
+                          display: 'flex', 
+                          gap: '0.5rem', 
+                          alignItems: 'center' 
+                        }}>
+                          {/* Estado */}
+                          <div style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '20px',
+                            fontSize: '0.8rem',
+                            fontWeight: '600',
+                            background: task.status === 'completada' ? '#dcfce7' : 
+                                       task.status === 'en_progreso' ? '#dbeafe' : 
+                                       task.status === 'cancelada' ? '#fee2e2' : '#f3f4f6',
+                            color: task.status === 'completada' ? '#166534' : 
+                                   task.status === 'en_progreso' ? '#1e40af' : 
+                                   task.status === 'cancelada' ? '#dc2626' : '#6b7280'
+                          }}>
+                            {task.status === 'completada' ? '✅ Completada' : 
+                             task.status === 'en_progreso' ? '🔄 En Progreso' : 
+                             task.status === 'cancelada' ? '❌ Cancelada' : '⏳ Pendiente'}
+                          </div>
+
+                          {/* Prioridad */}
+                          {task.priority === 'urgente' && (
+                            <div style={{
+                              padding: '0.25rem 0.5rem',
+                              background: '#fef2f2',
+                              color: '#dc2626',
+                              borderRadius: '20px',
+                              fontSize: '0.8rem',
+                              fontWeight: '600'
+                            }}>
+                              🔥 Urgente
+                            </div>
+                          )}
+                          {task.priority === 'alta' && (
+                            <div style={{
+                              padding: '0.25rem 0.5rem',
+                              background: '#fef2f2',
+                              color: '#dc2626',
+                              borderRadius: '20px',
+                              fontSize: '0.8rem',
+                              fontWeight: '600'
+                            }}>
+                              🔴 Alta
+                            </div>
                           )}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span style={{
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          background: task.status === 'completada' ? '#22c55e' : 
-                                     task.status === 'en_progreso' ? '#3b82f6' : 
-                                     task.status === 'cancelada' ? '#ef4444' : '#6b7280',
-                          color: 'white'
-                        }}>
-                          {task.status === 'completada' ? '✅' : 
-                           task.status === 'en_progreso' ? '🔄' : 
-                           task.status === 'cancelada' ? '❌' : '⏳'}
-                        </span>
-                        {task.priority === 'urgente' && <span style={{ fontSize: '1.2rem' }}>🔥</span>}
-                        {task.priority === 'alta' && <span style={{ fontSize: '1.2rem' }}>🔴</span>}
-                      </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}

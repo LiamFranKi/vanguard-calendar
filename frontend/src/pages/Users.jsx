@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
-import NotificationBell from '../components/NotificationBell';
+import Navbar from '../components/Navbar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { getImageUrl, getServerUrl } from '../config/constants';
@@ -22,7 +22,7 @@ function Users() {
     email: '',
     telefono: '',
     clave: '',
-    rol: 'estudiante'
+    rol: 'docente'
   });
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -51,6 +51,15 @@ function Users() {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const handleDniChange = (e) => {
+    const dniValue = e.target.value;
+    setFormData({
+      ...formData,
+      dni: dniValue,
+      clave: dniValue // La clave será igual al DNI
     });
   };
 
@@ -150,16 +159,6 @@ function Users() {
     }
   };
 
-  const handleToggleStatus = async (id) => {
-    try {
-      await axios.put(`/api/users/${id}/toggle-status`);
-      Swal.fire('¡Éxito!', 'Estado del usuario actualizado', 'success');
-      fetchUsers();
-    } catch (error) {
-      console.error('Error al cambiar estado:', error);
-      Swal.fire('Error', 'Error al cambiar el estado del usuario', 'error');
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -169,7 +168,7 @@ function Users() {
       email: '',
       telefono: '',
       clave: '',
-      rol: 'estudiante'
+      rol: 'docente'
     });
     setAvatar(null);
     setAvatarPreview(null);
@@ -194,95 +193,8 @@ function Users() {
       background: `linear-gradient(135deg, ${config.color_primario || '#667eea'}CC 0%, ${config.color_secundario || '#764ba2'}CC 100%)`,
       position: 'relative'
     }}>
-      {/* Navbar moderna */}
-      <nav style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-        padding: '1rem 0',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
-      }}>
-        <div className="container" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Link to="/dashboard" style={{
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: '#1f2937'
-          }}>
-            {config.logo ? (
-              <img 
-                src={`${getImageUrl(config.logo)}`} 
-                alt="Logo" 
-                style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  objectFit: 'contain'
-                }} 
-              />
-            ) : (
-              <span style={{ fontSize: '2rem' }}>📅</span>
-            )}
-            <span>{config.nombre_proyecto}</span>
-          </Link>
-          
-          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-            <Link to="/dashboard" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Dashboard</Link>
-            <Link to="/calendario" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Calendario</Link>
-            <Link to="/eventos" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Eventos</Link>
-            <Link to="/tareas" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Tareas</Link>
-            <Link to="/users" style={{ textDecoration: 'none', color: '#1f2937', fontWeight: '500' }}>Usuarios</Link>
-            <Link to="/settings" style={{ textDecoration: 'none', color: '#6b7280', fontWeight: '500' }}>Configuración</Link>
-            {/* Iconos de acción agrupados */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
-              <button 
-                onClick={() => navigate('/profile')}
-                style={{ 
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  padding: 0
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                title="Mi Perfil"
-              >
-                👤
-              </button>
-              
-              <NotificationBell />
-
-              <button 
-                onClick={handleLogout} 
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  padding: 0
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                title="Cerrar Sesión"
-              >
-                🚀
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar unificado */}
+      <Navbar />
 
       {/* Contenido principal */}
       <main style={{ padding: '3rem 0' }}>
@@ -442,28 +354,6 @@ function Users() {
                           ✏️
                         </button>
                         <button 
-                          onClick={() => handleToggleStatus(userItem.id)}
-                          title={userItem.activo ? 'Desactivar' : 'Activar'}
-                          style={{
-                            padding: '0.375rem',
-                            background: 'transparent',
-                            color: userItem.activo ? '#f59e0b' : '#10b981',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '1.1rem',
-                            transition: 'transform 0.2s, color 0.2s',
-                            borderRadius: '4px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.transform = 'scale(1.15)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.transform = 'scale(1)';
-                          }}
-                        >
-                          {userItem.activo ? '🔒' : '🔓'}
-                        </button>
-                        <button 
                           onClick={() => handleDelete(userItem.id)}
                           title="Eliminar"
                           style={{
@@ -616,7 +506,7 @@ function Users() {
                     type="text"
                     name="dni"
                     value={formData.dni}
-                    onChange={handleInputChange}
+                    onChange={handleDniChange}
                     required
                     maxLength="8"
                     disabled={editingUser}
@@ -743,7 +633,8 @@ function Users() {
                     onChange={handleInputChange}
                     required={!editingUser}
                     minLength="6"
-                    placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Mínimo 6 caracteres"}
+                    disabled={!editingUser}
+                    placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Se llena automáticamente con el DNI"}
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
@@ -751,7 +642,9 @@ function Users() {
                       border: '2px solid #e5e7eb',
                       fontSize: '1rem',
                       transition: 'border-color 0.2s',
-                      outline: 'none'
+                      outline: 'none',
+                      backgroundColor: editingUser ? 'white' : '#f9fafb',
+                      color: editingUser ? '#1f2937' : '#9ca3af'
                     }}
                     onFocus={(e) => e.target.style.borderColor = config.color_primario || '#667eea'}
                     onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useConfig } from '../contexts/ConfigContext';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import NotificationBell from '../components/NotificationBell';
+import Navbar from '../components/Navbar';
 
 // Configurar axios con la URL base y token
 import { API_URL } from '../config/constants';
@@ -291,80 +291,8 @@ function Calendar() {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '0'
     }}>
-      {/* Navbar */}
-      <nav style={{
-        background: 'rgba(255, 255, 255, 0.2)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {config.logo && (
-            <img
-              src={`${getImageUrl(config.logo)}`}
-              alt={config.nombre_proyecto}
-              style={{ height: '40px' }}
-            />
-          )}
-          <h1 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: '700' }}>
-            {config.nombre_proyecto || 'Vanguard Calendar'}
-          </h1>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <a href="/dashboard" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Dashboard</a>
-          <a href="/tareas" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Tareas</a>
-          <a href="/calendario" style={{ textDecoration: 'none', color: 'white', fontWeight: '600', borderBottom: '2px solid white', paddingBottom: '0.25rem' }}>Calendario</a>
-          {user?.rol === 'Administrador' && (
-            <>
-              <a href="/users" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Usuarios</a>
-              <a href="/settings" style={{ textDecoration: 'none', color: '#e5e7eb', fontWeight: '500' }}>Configuración</a>
-            </>
-          )}
-          {/* Iconos de acción agrupados */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1rem' }}>
-            <button 
-              onClick={() => navigate('/profile')}
-              style={{ 
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                padding: 0
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              title="Mi Perfil"
-            >
-              👤
-            </button>
-            
-            <NotificationBell />
-
-            <button 
-              onClick={handleLogout} 
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                padding: 0
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              title="Cerrar Sesión"
-            >
-              🚀
-            </button>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar unificado */}
+      <Navbar />
 
       {/* Contenido principal */}
       <div style={{ padding: '2rem', maxWidth: '1800px', margin: '0 auto' }}>
