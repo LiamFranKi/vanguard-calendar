@@ -1,6 +1,6 @@
-// Configuración para producción
-export const SERVER_URL = 'https://calendar.vanguardschools.edu.pe';
-export const API_URL = 'https://calendar.vanguardschools.edu.pe/api';
+// Configuración para producción - Hostinger
+export const SERVER_URL = 'https://calendar.vanguardschools.com';
+export const API_URL = 'https://calendar.vanguardschools.com/api';
 
 // Función para obtener la URL completa de un endpoint
 export const getServerUrl = (path = '') => {

@@ -27,6 +27,7 @@ app.use(morgan('dev'));
 // CORS
 app.use(cors({
   origin: [
+    'https://calendar.vanguardschools.com',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:5173'
